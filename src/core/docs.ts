@@ -51,7 +51,7 @@ export const getDocs = async (): Promise<FolderStructure[]> => {
 };
 
 /**
- *
+ * This function will return the content of the .mdx file in the directory with the given filePath.
  * @param filePath - The path to the file
  * @returns
  */

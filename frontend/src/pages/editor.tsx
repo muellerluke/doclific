@@ -1,9 +1,10 @@
 import { orpcTs } from "@/lib/orpc"
 import { useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
+import MarkdownDemo from "@/components/markdown-to-slate-demo";
 
+export default function RTE() {
 
-export default function Editor() {
     const { pathname } = useLocation()
     const filePath = pathname.slice(1)
     const docQuery = useQuery({
@@ -16,9 +17,15 @@ export default function Editor() {
     })
 
     console.log(docQuery.data)
+
+
     return (
-        <div>
-            <h1>Editor</h1>
+        <div className="max-w-3xl mx-auto w-full relative">
+            {docQuery.data && (
+                <MarkdownDemo
+                    initialMarkdown={docQuery.data}
+                />
+            )}
         </div>
     )
 }
