@@ -59,14 +59,32 @@ export const getDoc = async (filePath: string) => {
 	const currentDir = process.cwd();
 	const fullPath = path.join(currentDir, filePath);
 	try {
-		// check for .mdx file in the directory (the name will be a unique ID)
-		const files = await fs.readdir(fullPath, { withFileTypes: true });
-		const mdxFile = files.find((file) => file.name.endsWith('.mdx'));
-		if (!mdxFile) {
-			return undefined;
-		}
-		return fs.readFile(path.join(fullPath, mdxFile.name), 'utf8');
+		return fs.readFile(path.join(fullPath, 'content.mdx'), 'utf8');
 	} catch {
 		return undefined;
 	}
+};
+
+export const updateDoc = async (filePath: string, content: string) => {
+	const currentDir = process.cwd();
+	const fullPath = path.join(currentDir, filePath);
+	await fs.writeFile(path.join(fullPath, 'content.mdx'), content);
+};
+
+export const createDoc = async (filePath: string, title: string, icon: string | undefined) => {
+	const currentDir = process.cwd();
+	const fullPath = path.join(currentDir, filePath);
+
+	const newFolderName = crypto.randomUUID();
+	const newFolderPath = path.join(fullPath, newFolderName);
+	await fs.mkdir(newFolderPath, { recursive: true });
+	// create content.mdx file
+	await fs.writeFile(path.join(newFolderPath, 'content.mdx'), '');
+	// create config.json file
+	await fs.writeFile(
+		path.join(newFolderPath, 'config.json'),
+		JSON.stringify({ title, icon }, null, 2)
+	);
+	// return the new folder path
+	return newFolderPath;
 };

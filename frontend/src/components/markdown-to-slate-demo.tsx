@@ -3,13 +3,15 @@ import { Plate, usePlateEditor } from 'platejs/react';
 import remarkEmoji from 'remark-emoji';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import { useEffect, useRef } from 'react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 
 export default function MarkdownDemo(
-  { initialMarkdown }: { initialMarkdown: string }
+  { initialMarkdown, onUpdate }: { initialMarkdown: string, onUpdate: (content: string) => void }
 ) {
+  const previousMarkdown = useRef<string>('');
   const editor = usePlateEditor(
     {
       plugins: EditorKit,
@@ -26,6 +28,18 @@ export default function MarkdownDemo(
     },
     []
   );
+
+  // useEffect that runs every 250ms and logs the serialized markdown to the console
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const serialized = editor.getApi(MarkdownPlugin).markdown.serialize();
+      if (serialized !== previousMarkdown.current) {
+        previousMarkdown.current = serialized;
+        onUpdate(serialized);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [editor, onUpdate]);
 
   return (
     <Plate editor={editor}>

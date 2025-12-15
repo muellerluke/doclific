@@ -1,5 +1,5 @@
 import { orpcTs } from "@/lib/orpc"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
 import MarkdownDemo from "@/components/markdown-to-slate-demo";
 
@@ -16,14 +16,23 @@ export default function RTE() {
         enabled: true,
     })
 
-    console.log(docQuery.data)
+    const updateDoc = useMutation({
+        ...orpcTs.docs.updateDoc.mutationOptions(),
+    })
 
+    const onUpdate = (content: string) => {
+        updateDoc.mutate({
+            filePath,
+            content,
+        })
+    }
 
     return (
         <div className="max-w-3xl mx-auto w-full relative">
             {docQuery.data && (
                 <MarkdownDemo
                     initialMarkdown={docQuery.data}
+                    onUpdate={onUpdate}
                 />
             )}
         </div>

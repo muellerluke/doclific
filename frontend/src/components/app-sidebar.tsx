@@ -1,4 +1,4 @@
-import { ChevronRight, EllipsisVertical, FileIcon, UserCircle } from "lucide-react";
+import { ChevronRight, EllipsisVertical, FileIcon, Plus, UserCircle } from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
@@ -15,7 +15,7 @@ import {
     SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
 import { orpcTs } from "@/lib/orpc"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -23,6 +23,91 @@ import { useSidebar } from "@/components/ui/sidebar"
 import type { FolderStructure } from "@/types/docs"
 import { DynamicIcon, type LucideIconName } from "./ui/dynamic-icon"
 import { useNavigate } from "react-router"
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+function CreateDocDialog({
+    parentPath,
+    isNested,
+}: {
+    parentPath: string
+    isNested: boolean
+}) {
+    const [open, setOpen] = useState(false)
+    const [title, setTitle] = useState("")
+    const queryClient = useQueryClient()
+    const createDocMutation = useMutation({
+        ...orpcTs.docs.createDoc.mutationOptions(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: orpcTs.docs.getDocs.queryKey() })
+            setOpen(false)
+            setTitle("")
+        },
+    })
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        createDocMutation.mutate({
+            filePath: parentPath,
+            title,
+        })
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                {isNested ? (
+                    <SidebarMenuSubButton className="text-muted-foreground hover:text-foreground">
+                        <Plus className="size-4" />
+                        <span className="truncate">New doc</span>
+                    </SidebarMenuSubButton>
+                ) : (
+                    <SidebarMenuButton className="text-muted-foreground hover:text-foreground">
+                        <Plus className="size-4" />
+                        <span className="truncate">New doc</span>
+                    </SidebarMenuButton>
+                )}
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create New Document</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit}>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <label htmlFor="title" className="text-sm font-medium">
+                                Title
+                            </label>
+                            <Input
+                                id="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Document title"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={createDocMutation.isPending}>
+                            {createDocMutation.isPending ? "Creating..." : "Create"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export function AppSidebar() {
     const navigate = useNavigate()
@@ -50,15 +135,59 @@ export function AppSidebar() {
         })
     }
 
-    const renderDocItem = (doc: FolderStructure, fullPath: string, isNested: boolean = false) => {
+    const renderDocItem = (
+        doc: FolderStructure,
+        fullPath: string,
+        isNested: boolean = false,
+        index: number = 0,
+        totalSiblings: number = 0
+    ) => {
         const hasChildren = doc.children.length > 0
         const isExpanded = expandedItems.has(fullPath)
+        const isLast = index === totalSiblings - 1
 
         if (isNested) {
             return (
-                <SidebarMenuSubItem key={fullPath}>
-                    <SidebarMenuSubButton
-                        className="cursor-pointer"
+                <>
+                    <SidebarMenuSubItem key={fullPath}>
+                        <SidebarMenuSubButton
+                            className="group cursor-pointer"
+                            onClick={() => navigate(`/${fullPath}`)}
+                        >
+                            {hasChildren && (
+                                <ChevronRight
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (hasChildren) toggleExpanded(fullPath)
+                                    }}
+                                    className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                                />
+                            )}
+                            {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
+                            <span className="truncate">{doc.title}</span>
+                            <Plus className="size-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </SidebarMenuSubButton>
+                        {hasChildren && isExpanded && (
+                            <SidebarMenuSub>
+                                {doc.children.map((child, childIndex) => {
+                                    const childPath = `${fullPath}/${child.name}`
+                                    return renderDocItem(child, childPath, true, childIndex, doc.children.length)
+                                })}
+                                <SidebarMenuSubItem>
+                                    <CreateDocDialog parentPath={fullPath} isNested={true} />
+                                </SidebarMenuSubItem>
+                            </SidebarMenuSub>
+                        )}
+                    </SidebarMenuSubItem>
+                </>
+            )
+        }
+
+        return (
+            <>
+                <SidebarMenuItem key={fullPath}>
+                    <SidebarMenuButton
+                        className="group cursor-pointer"
                         onClick={() => navigate(`/${fullPath}`)}
                     >
                         {hasChildren && (
@@ -71,52 +200,32 @@ export function AppSidebar() {
                             />
                         )}
                         {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
-                        <span className="truncate">{doc.title}</span>
-                    </SidebarMenuSubButton>
+                        <span className="truncate font-medium">{doc.title}</span>
+                        <Plus className="size-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </SidebarMenuButton>
                     {hasChildren && isExpanded && (
                         <SidebarMenuSub>
-                            {doc.children.map((child) => {
+                            {doc.children.map((child, childIndex) => {
                                 const childPath = `${fullPath}/${child.name}`
-                                return renderDocItem(child, childPath, true)
+                                return renderDocItem(child, childPath, true, childIndex, doc.children.length)
                             })}
+                            <SidebarMenuSubItem>
+                                <CreateDocDialog parentPath={fullPath} isNested={true} />
+                            </SidebarMenuSubItem>
                         </SidebarMenuSub>
                     )}
-                </SidebarMenuSubItem>
-            )
-        }
-
-        return (
-            <SidebarMenuItem key={fullPath}>
-                <SidebarMenuButton
-                    className="cursor-pointer"
-                    onClick={() => navigate(`/${fullPath}`)}
-                >
-                    {hasChildren && (
-                        <ChevronRight
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                if (hasChildren) toggleExpanded(fullPath)
-                            }}
-                            className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                        />
-                    )}
-                    {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
-                    <span className="truncate font-medium">{doc.title}</span>
-                </SidebarMenuButton>
-                {hasChildren && isExpanded && (
-                    <SidebarMenuSub>
-                        {doc.children.map((child) => {
-                            const childPath = `${fullPath}/${child.name}`
-                            return renderDocItem(child, childPath, true)
-                        })}
-                    </SidebarMenuSub>
+                </SidebarMenuItem>
+                {isLast && (
+                    <SidebarMenuItem>
+                        <CreateDocDialog parentPath="" isNested={false} />
+                    </SidebarMenuItem>
                 )}
-            </SidebarMenuItem>
+            </>
         )
     }
 
     const docsMenu = (docs: FolderStructure[]): React.ReactNode[] => {
-        return docs.map((doc) => renderDocItem(doc, doc.name, false))
+        return docs.map((doc, index) => renderDocItem(doc, doc.name, false, index, docs.length))
     }
 
 
