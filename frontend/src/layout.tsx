@@ -3,11 +3,13 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@radix-ui/react-separator"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ModeToggle } from "./components/mode-toggle"
+import { LayoutHeader } from "./components/ui/layout-header"
 
 const queryClient = new QueryClient()
 
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+
     return (
         <QueryClientProvider client={queryClient}>
             <SidebarProvider style={
@@ -26,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                     orientation="vertical"
                                     className="mx-2 data-[orientation=vertical]:h-4"
                                 />
-                                <h1 className="text-base font-medium">Doclific</h1>
+                                <LayoutHeader />
                             </div>
 
                             <ModeToggle />

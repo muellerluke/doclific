@@ -79,7 +79,7 @@ export const createDoc = async (filePath: string, title: string, icon: string | 
 	const newFolderPath = path.join(fullPath, newFolderName);
 	await fs.mkdir(newFolderPath, { recursive: true });
 	// create content.mdx file
-	await fs.writeFile(path.join(newFolderPath, 'content.mdx'), '');
+	await fs.writeFile(path.join(newFolderPath, 'content.mdx'), '# Hello World');
 	// create config.json file
 	await fs.writeFile(
 		path.join(newFolderPath, 'config.json'),

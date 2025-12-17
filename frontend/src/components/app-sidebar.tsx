@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import React from "react"
 
 function CreateDocDialog({
     parentPath,
@@ -82,6 +83,8 @@ function CreateDocDialog({
             icon: selectedIcon || undefined,
         })
     }
+
+    const iconNames = Object.keys(Icons).filter((iconName) => iconName.endsWith("Icon") && iconName !== "createLucideIcon").map((iconName) => iconName.replace("Icon", ""))
 
     const IconComponent = selectedIcon ? <DynamicIcon name={selectedIcon as LucideIconName} /> : null
 
@@ -152,7 +155,7 @@ function CreateDocDialog({
                                     </button>
                                 )}
                                 {showIconPicker && (
-                                    <div ref={iconPickerRef} className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg p-2 max-h-64 overflow-y-auto">
+                                    <div ref={iconPickerRef} className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg p-2 overflow-hidden">
                                         <div className="relative mb-2">
                                             <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                                             <Input
@@ -162,12 +165,9 @@ function CreateDocDialog({
                                                 className="pl-8"
                                             />
                                         </div>
-                                        <div className="grid grid-cols-6 gap-2">
-                                            {Object.keys(Icons).map((iconName) => {
+                                        <div className="grid grid-cols-6 gap-2 max-h-64 h-full overflow-y-auto">
+                                            {iconNames.filter((iconName) => iconSearch === "" || iconName.toLowerCase().includes(iconSearch.toLowerCase())).map((iconName) => {
                                                 try {
-                                                    const Icon = Icons[iconName as keyof typeof Icons]
-
-                                                    const IconComponent = Icon as React.ComponentType<{ className?: string }>
                                                     return (
                                                         <button
                                                             key={iconName}
@@ -181,7 +181,7 @@ function CreateDocDialog({
                                                                 }`}
                                                             title={iconName}
                                                         >
-                                                            <IconComponent className="size-4 mx-auto" />
+                                                            <DynamicIcon name={iconName as LucideIconName} className="size-4 mx-auto" />
                                                         </button>
                                                     )
                                                 } catch {
@@ -279,7 +279,7 @@ export function AppSidebar() {
         }
 
         return (
-            <>
+            <React.Fragment key={fullPath}>
                 <SidebarMenuItem key={fullPath}>
                     <SidebarMenuButton
                         className="group cursor-pointer"
@@ -312,7 +312,7 @@ export function AppSidebar() {
                         <CreateDocDialog parentPath="" isNested={false} />
                     </SidebarMenuItem>
                 )}
-            </>
+            </React.Fragment>
         )
     }
 
