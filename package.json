@@ -1,20 +1,28 @@
 {
 	"name": "doclific",
-	"version": "0.1.0",
+	"version": "0.2.7",
 	"type": "module",
 	"bin": {
 		"doclific": "./dist/bin/doclific.js"
 	},
 	"scripts": {
 		"build": "tsc",
+		"start": "node dist/bin/doclific.js",
 		"format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
-		"format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
-		"postinstall": "npm run build && cd frontend && npm install && npm run build"
+		"format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\""
 	},
+	"license": "BUSL-1.1",
+	"files": [
+		"README.md",
+		"LICENSE",
+		"dist",
+		"package.json"
+	],
 	"dependencies": {
 		"@mdx-js/mdx": "^3.1.1",
 		"@orpc/client": "^1.12.2",
 		"@orpc/server": "^1.12.2",
+		"@types/node": "^20.6.0",
 		"child_process": "^1.0.2",
 		"cors": "^2.8.5",
 		"express": "^5.2.1",
@@ -24,7 +32,6 @@
 	"devDependencies": {
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
-		"@types/node": "^20.6.0",
 		"prettier": "^3.7.4",
 		"typescript": "^5.4.5"
 	}

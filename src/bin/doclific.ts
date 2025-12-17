@@ -1,17 +1,54 @@
 #!/usr/bin/env node
 import { spawn } from 'child_process';
 import { startServer } from '../server/index.js';
+import { mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
 
-const port =
-	process.argv.find((arg) => arg.startsWith('-p=') || arg.startsWith('--port='))?.split('=')[1] ||
-	6767;
+const command = process.argv[2];
 
-const cwd = process.cwd();
-console.log('Doclific CLI running in directory:', cwd);
+if (command === 'init') {
+	const cwd = process.cwd();
+	const doclificDir = path.join(cwd, 'doclific');
 
-startServer(Number(port));
+	if (existsSync(doclificDir)) {
+		console.log('Directory "doclific" already exists.');
+		process.exit(0);
+	}
 
-// Optional: open browser automatically
-const open =
-	process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
-spawn(open, [`http://localhost:${port}`]);
+	mkdir(doclificDir, { recursive: true })
+		.then(() => {
+			console.log(`Created directory: ${doclificDir}`);
+			process.exit(0);
+		})
+		.catch((error) => {
+			console.error('Failed to create directory:', error);
+			process.exit(1);
+		});
+} else {
+	const port =
+		process.argv
+			.find((arg) => arg.startsWith('-p=') || arg.startsWith('--port='))
+			?.split('=')[1] || 6767;
+
+	const cwd = process.cwd();
+	console.log('Doclific CLI running in directory:', cwd);
+
+	startServer(Number(port));
+
+	// Optional: open browser automatically
+	openBrowser(`http://localhost:${port}`);
+}
+
+function openBrowser(url: string) {
+	if (process.platform === 'win32') {
+		spawn('cmd', ['/c', 'start', '', url], {
+			detached: true,
+			stdio: 'ignore',
+		});
+	} else if (process.platform === 'darwin') {
+		spawn('open', [url], { detached: true, stdio: 'ignore' });
+	} else {
+		spawn('xdg-open', [url], { detached: true, stdio: 'ignore' });
+	}
+}

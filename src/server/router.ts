@@ -56,7 +56,7 @@ export const router = {
 			const currentDir = process.cwd();
 			return {
 				contents: await getFileContents(filePath),
-				fullPath: path.join(currentDir, '..', filePath),
+				fullPath: path.join(currentDir, filePath),
 			};
 		}),
 	},

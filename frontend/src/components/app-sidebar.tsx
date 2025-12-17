@@ -238,11 +238,8 @@ export function AppSidebar() {
         doc: FolderStructure,
         fullPath: string,
         isNested: boolean = false,
-        index: number = 0,
-        totalSiblings: number = 0
     ) => {
         const isExpanded = expandedItems.has(fullPath)
-        const isLast = index === totalSiblings - 1
 
         if (isNested) {
             return (
@@ -264,9 +261,9 @@ export function AppSidebar() {
                         </SidebarMenuSubButton>
                         {isExpanded && (
                             <SidebarMenuSub>
-                                {doc.children.map((child, childIndex) => {
+                                {doc.children.map((child) => {
                                     const childPath = `${fullPath}/${child.name}`
-                                    return renderDocItem(child, childPath, true, childIndex, doc.children.length)
+                                    return renderDocItem(child, childPath, true)
                                 })}
                                 <SidebarMenuSubItem>
                                     <CreateDocDialog parentPath={fullPath} isNested={true} />
@@ -279,45 +276,38 @@ export function AppSidebar() {
         }
 
         return (
-            <React.Fragment key={fullPath}>
-                <SidebarMenuItem key={fullPath}>
-                    <SidebarMenuButton
-                        className="group cursor-pointer"
-                        onClick={() => navigate(`/${fullPath}`)}
-                    >
-                        <ChevronRight
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                toggleExpanded(fullPath)
-                            }}
-                            className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                        />
-                        {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
-                        <span className="truncate font-medium">{doc.title}</span>
-                    </SidebarMenuButton>
-                    {isExpanded && (
-                        <SidebarMenuSub>
-                            {doc.children.map((child, childIndex) => {
-                                const childPath = `${fullPath}/${child.name}`
-                                return renderDocItem(child, childPath, true, childIndex, doc.children.length)
-                            })}
-                            <SidebarMenuSubItem>
-                                <CreateDocDialog parentPath={fullPath} isNested={true} />
-                            </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                    )}
-                </SidebarMenuItem>
-                {isLast && (
-                    <SidebarMenuItem>
-                        <CreateDocDialog parentPath="" isNested={false} />
-                    </SidebarMenuItem>
+            <SidebarMenuItem key={fullPath}>
+                <SidebarMenuButton
+                    className="group cursor-pointer"
+                    onClick={() => navigate(`/${fullPath}`)}
+                >
+                    <ChevronRight
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            toggleExpanded(fullPath)
+                        }}
+                        className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                    />
+                    {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
+                    <span className="truncate font-medium">{doc.title}</span>
+                </SidebarMenuButton>
+                {isExpanded && (
+                    <SidebarMenuSub>
+                        {doc.children.map((child) => {
+                            const childPath = `${fullPath}/${child.name}`
+                            return renderDocItem(child, childPath, true)
+                        })}
+                        <SidebarMenuSubItem>
+                            <CreateDocDialog parentPath={fullPath} isNested={true} />
+                        </SidebarMenuSubItem>
+                    </SidebarMenuSub>
                 )}
-            </React.Fragment>
+            </SidebarMenuItem>
         )
     }
 
     const docsMenu = (docs: FolderStructure[]): React.ReactNode[] => {
-        return docs.map((doc, index) => renderDocItem(doc, doc.name, false, index, docs.length))
+        return docs.map((doc) => renderDocItem(doc, doc.name, false))
     }
 
 
@@ -332,6 +322,9 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {docsMenu(docsQuery.data ?? [])}
+                            <SidebarMenuItem>
+                                <CreateDocDialog parentPath="" isNested={false} />
+                            </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
