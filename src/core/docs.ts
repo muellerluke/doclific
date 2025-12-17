@@ -41,7 +41,7 @@ const scanDirectory = async (dirPath: string): Promise<FolderStructure[]> => {
 };
 
 export const getDocs = async (): Promise<FolderStructure[]> => {
-	const docsFolder = process.cwd();
+	const docsFolder = path.join(process.cwd(), 'doclific');
 	try {
 		await fs.access(docsFolder);
 	} catch {
@@ -57,7 +57,7 @@ export const getDocs = async (): Promise<FolderStructure[]> => {
  */
 export const getDoc = async (filePath: string) => {
 	const currentDir = process.cwd();
-	const fullPath = path.join(currentDir, filePath);
+	const fullPath = path.join(currentDir, 'doclific', filePath);
 	try {
 		return fs.readFile(path.join(fullPath, 'content.mdx'), 'utf8');
 	} catch {
@@ -67,13 +67,13 @@ export const getDoc = async (filePath: string) => {
 
 export const updateDoc = async (filePath: string, content: string) => {
 	const currentDir = process.cwd();
-	const fullPath = path.join(currentDir, filePath);
+	const fullPath = path.join(currentDir, 'doclific', filePath);
 	await fs.writeFile(path.join(fullPath, 'content.mdx'), content);
 };
 
 export const createDoc = async (filePath: string, title: string, icon: string | undefined) => {
 	const currentDir = process.cwd();
-	const fullPath = path.join(currentDir, filePath);
+	const fullPath = path.join(currentDir, 'doclific', filePath);
 
 	const newFolderName = crypto.randomUUID();
 	const newFolderPath = path.join(fullPath, newFolderName);

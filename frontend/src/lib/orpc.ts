@@ -5,7 +5,7 @@ import type { Router } from '../../../src/server/router';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
 
 const link = new RPCLink({
-	url: `http://localhost:${window.PORT ?? 6767}/rpc`,
+	url: `http://localhost:${window.env.PORT ?? 6767}/rpc`,
 	headers: { Authorization: window.localStorage.getItem('token') || '' },
 });
 

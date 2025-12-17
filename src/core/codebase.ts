@@ -16,9 +16,9 @@ export const getFolderContents = async (filePath: string): Promise<FileNode[]> =
 	const currentDir = process.cwd();
 	let fullPath = '';
 	if (filePath !== '') {
-		fullPath = path.join(currentDir, '..', filePath);
+		fullPath = path.join(currentDir, filePath);
 	} else {
-		fullPath = path.join(currentDir, '..');
+		fullPath = currentDir;
 	}
 	const entries = await fs.readdir(fullPath, { withFileTypes: true });
 	const nodes: FileNode[] = [];
@@ -34,6 +34,6 @@ export const getFolderContents = async (filePath: string): Promise<FileNode[]> =
 
 export const getFileContents = async (filePath: string) => {
 	const currentDir = process.cwd();
-	const fullPath = path.join(currentDir, '..', filePath);
+	const fullPath = path.join(currentDir, filePath);
 	return fs.readFile(fullPath, 'utf8');
 };

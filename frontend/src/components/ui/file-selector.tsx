@@ -177,12 +177,12 @@ export function FileSelector({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center min-h-[80vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative z-50 w-full max-w-4xl min-h-[80vh] mx-4 bg-background rounded-lg shadow-xl flex flex-col overflow-hidden border">
+            <div className="relative z-50 w-full max-w-4xl min-h-[80vh] max-h-[calc(100vh-2rem)] mx-4 bg-background rounded-lg shadow-xl flex flex-col overflow-hidden border">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b">
                     <div>

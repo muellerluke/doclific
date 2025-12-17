@@ -1,6 +1,8 @@
 declare global {
 	interface Window {
-		PORT?: number | string;
+		env: {
+			PORT: number | string;
+		};
 	}
 }
 

@@ -5,6 +5,7 @@ import { onError } from '@orpc/server';
 import { router } from './router.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,11 +36,20 @@ export function startServer(port: number = 6767) {
 		next();
 	});
 
-	app.listen(port, () => console.log(`Access your documentation here: http://localhost:${port}`));
-
 	// serve static files in frontend/dist
-	app.use(express.static(frontendDist));
-	app.get('/{*splat}', (req, res) => {
-		res.sendFile(path.join(frontendDist, 'index.html'));
+	app.use((req, res, next) => {
+		if (req.url === '/') {
+			const html = fs.readFileSync(path.join(frontendDist, 'index.html'), 'utf8');
+			res.send(html.replace(': BACKEND_PORT', `: ${port.toString()}`));
+		} else {
+			express.static(frontendDist)(req, res, next);
+		}
 	});
+
+	app.get('/{*splat}', (req, res) => {
+		const html = fs.readFileSync(path.join(frontendDist, 'index.html'), 'utf8');
+		res.send(html.replace(': BACKEND_PORT', `: ${port.toString()}`));
+	});
+
+	app.listen(port, () => console.log(`Access your documentation here: http://localhost:${port}`));
 }
