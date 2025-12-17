@@ -15,16 +15,15 @@ export default function MarkdownDemo(
   const editor = usePlateEditor(
     {
       plugins: EditorKit,
-      value: (editor) =>
-        editor.getApi(MarkdownPlugin).markdown.deserialize(initialMarkdown, {
-          remarkPlugins: [
-            remarkMath,
-            remarkGfm,
-            remarkMdx,
-            remarkMention,
-            remarkEmoji as any,
-          ],
-        }),
+      value: (editor) => editor.getApi(MarkdownPlugin).markdown.deserialize(initialMarkdown, {
+        remarkPlugins: [
+          remarkMath,
+          remarkGfm,
+          remarkMdx,
+          remarkMention,
+          remarkEmoji as any,
+        ],
+      })
     },
     []
   );
@@ -44,7 +43,7 @@ export default function MarkdownDemo(
   return (
     <Plate editor={editor}>
       <EditorContainer>
-        <Editor variant="none" className="px-4 py-2" />
+        <Editor variant="none" className="px-8 py-2" />
       </EditorContainer>
     </Plate>
   );

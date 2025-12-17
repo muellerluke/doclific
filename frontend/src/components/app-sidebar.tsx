@@ -1,4 +1,5 @@
-import { ChevronRight, EllipsisVertical, FileIcon, Plus, UserCircle } from "lucide-react";
+import { ChevronRight, EllipsisVertical, FileIcon, Plus, UserCircle, Search, X } from "lucide-react";
+import * as Icons from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/sidebar"
 import { orpcTs } from "@/lib/orpc"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSidebar } from "@/components/ui/sidebar"
@@ -43,13 +44,33 @@ function CreateDocDialog({
 }) {
     const [open, setOpen] = useState(false)
     const [title, setTitle] = useState("")
+    const [selectedIcon, setSelectedIcon] = useState<string>("")
+    const [iconSearch, setIconSearch] = useState("")
+    const [showIconPicker, setShowIconPicker] = useState(false)
+    const iconPickerRef = useRef<HTMLDivElement>(null)
     const queryClient = useQueryClient()
+
+    // Close icon picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (iconPickerRef.current && !iconPickerRef.current.contains(event.target as Node)) {
+                setShowIconPicker(false)
+            }
+        }
+        if (showIconPicker) {
+            document.addEventListener("mousedown", handleClickOutside)
+            return () => document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [showIconPicker])
     const createDocMutation = useMutation({
         ...orpcTs.docs.createDoc.mutationOptions(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: orpcTs.docs.getDocs.queryKey() })
             setOpen(false)
             setTitle("")
+            setSelectedIcon("")
+            setIconSearch("")
+            setShowIconPicker(false)
         },
     })
 
@@ -58,25 +79,28 @@ function CreateDocDialog({
         createDocMutation.mutate({
             filePath: parentPath,
             title,
+            icon: selectedIcon || undefined,
         })
     }
+
+    const IconComponent = selectedIcon ? <DynamicIcon name={selectedIcon as LucideIconName} /> : null
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {isNested ? (
                     <SidebarMenuSubButton className="text-muted-foreground hover:text-foreground">
-                        <Plus className="size-4" />
+                        <Plus className="size-4 !stroke-current" />
                         <span className="truncate">New doc</span>
                     </SidebarMenuSubButton>
                 ) : (
-                    <SidebarMenuButton className="text-muted-foreground hover:text-foreground">
-                        <Plus className="size-4" />
+                    <SidebarMenuButton className="text-muted-foreground stroke-muted-foreground hover:text-foreground hover:stroke-foreground">
+                        <Plus className="size-4 !stroke-current" />
                         <span className="truncate">New doc</span>
                     </SidebarMenuButton>
                 )}
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create New Document</DialogTitle>
                 </DialogHeader>
@@ -93,6 +117,81 @@ function CreateDocDialog({
                                 placeholder="Document title"
                                 required
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Icon (optional)</label>
+                            <div className="relative">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                    onClick={() => setShowIconPicker(!showIconPicker)}
+                                >
+                                    {IconComponent ? (
+                                        <>
+                                            <DynamicIcon name={selectedIcon as LucideIconName} className="size-4 mr-2" />
+                                            <span>{selectedIcon}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FileIcon className="size-4 mr-2" />
+                                            <span>Select icon</span>
+                                        </>
+                                    )}
+                                </Button>
+                                {selectedIcon && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setSelectedIcon("")
+                                        }}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
+                                )}
+                                {showIconPicker && (
+                                    <div ref={iconPickerRef} className="absolute z-10 w-full mt-1 bg-background border rounded-lg shadow-lg p-2 max-h-64 overflow-y-auto">
+                                        <div className="relative mb-2">
+                                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search icons..."
+                                                value={iconSearch}
+                                                onChange={(e) => setIconSearch(e.target.value)}
+                                                className="pl-8"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-6 gap-2">
+                                            {Object.keys(Icons).map((iconName) => {
+                                                try {
+                                                    const Icon = Icons[iconName as keyof typeof Icons]
+
+                                                    const IconComponent = Icon as React.ComponentType<{ className?: string }>
+                                                    return (
+                                                        <button
+                                                            key={iconName}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedIcon(iconName)
+                                                                setShowIconPicker(false)
+                                                                setIconSearch("")
+                                                            }}
+                                                            className={`p-2 rounded hover:bg-muted transition-colors ${selectedIcon === iconName ? "bg-primary/10 border border-primary" : ""
+                                                                }`}
+                                                            title={iconName}
+                                                        >
+                                                            <IconComponent className="size-4 mx-auto" />
+                                                        </button>
+                                                    )
+                                                } catch {
+                                                    return <></>
+                                                }
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
@@ -142,7 +241,6 @@ export function AppSidebar() {
         index: number = 0,
         totalSiblings: number = 0
     ) => {
-        const hasChildren = doc.children.length > 0
         const isExpanded = expandedItems.has(fullPath)
         const isLast = index === totalSiblings - 1
 
@@ -154,20 +252,17 @@ export function AppSidebar() {
                             className="group cursor-pointer"
                             onClick={() => navigate(`/${fullPath}`)}
                         >
-                            {hasChildren && (
-                                <ChevronRight
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        if (hasChildren) toggleExpanded(fullPath)
-                                    }}
-                                    className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                                />
-                            )}
+                            <ChevronRight
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleExpanded(fullPath)
+                                }}
+                                className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                            />
                             {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
                             <span className="truncate">{doc.title}</span>
-                            <Plus className="size-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                         </SidebarMenuSubButton>
-                        {hasChildren && isExpanded && (
+                        {isExpanded && (
                             <SidebarMenuSub>
                                 {doc.children.map((child, childIndex) => {
                                     const childPath = `${fullPath}/${child.name}`
@@ -190,20 +285,17 @@ export function AppSidebar() {
                         className="group cursor-pointer"
                         onClick={() => navigate(`/${fullPath}`)}
                     >
-                        {hasChildren && (
-                            <ChevronRight
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (hasChildren) toggleExpanded(fullPath)
-                                }}
-                                className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                            />
-                        )}
+                        <ChevronRight
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                toggleExpanded(fullPath)
+                            }}
+                            className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        />
                         {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
                         <span className="truncate font-medium">{doc.title}</span>
-                        <Plus className="size-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                     </SidebarMenuButton>
-                    {hasChildren && isExpanded && (
+                    {isExpanded && (
                         <SidebarMenuSub>
                             {doc.children.map((child, childIndex) => {
                                 const childPath = `${fullPath}/${child.name}`

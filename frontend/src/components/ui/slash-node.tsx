@@ -34,6 +34,7 @@ import {
   InlineComboboxInput,
   InlineComboboxItem,
 } from './inline-combobox';
+import { CodebaseSnippetType } from '../editor/plugins/codebase-kit';
 
 type Group = {
   group: string;
@@ -150,6 +151,11 @@ const groups: Group[] = [
         icon: <RadicalIcon />,
         label: 'Equation',
         value: KEYS.equation,
+      },
+      {
+        icon: <Code2 />,
+        label: 'Codebase Snippet',
+        value: CodebaseSnippetType,
       },
     ].map((item) => ({
       ...item,

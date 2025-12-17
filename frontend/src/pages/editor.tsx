@@ -28,13 +28,17 @@ export default function RTE() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto w-full relative">
-            {docQuery.data && (
-                <MarkdownDemo
-                    initialMarkdown={docQuery.data}
-                    onUpdate={onUpdate}
-                />
-            )}
+        <div className="flex-1 relative">
+            <div className="absolute inset-0 overflow-y-auto">
+                <div className="max-w-4xl mx-auto w-full relative p-4">
+                    {docQuery.data && (
+                        <MarkdownDemo
+                            initialMarkdown={docQuery.data}
+                            onUpdate={onUpdate}
+                        />
+                    )}
+                </div>
+            </div>
         </div>
     )
 }

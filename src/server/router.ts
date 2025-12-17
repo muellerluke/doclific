@@ -7,6 +7,8 @@ import {
 } from '../core/git.js';
 import { createDoc, getDoc, getDocs, updateDoc } from '../core/docs.js';
 import { z } from 'zod';
+import { getFileContents, getFolderContents } from '../core/codebase.js';
+import path from 'path';
 
 export const router = {
 	git: {
@@ -41,6 +43,22 @@ export const router = {
 				const { filePath, title, icon } = input;
 				return await createDoc(filePath, title, icon);
 			}),
+	},
+	codebase: {
+		getFolderContents: os
+			.input(z.object({ filePath: z.string() }))
+			.handler(async ({ input }) => {
+				const { filePath } = input;
+				return await getFolderContents(filePath);
+			}),
+		getFileContents: os.input(z.object({ filePath: z.string() })).handler(async ({ input }) => {
+			const { filePath } = input;
+			const currentDir = process.cwd();
+			return {
+				contents: await getFileContents(filePath),
+				fullPath: path.join(currentDir, '..', filePath),
+			};
+		}),
 	},
 };
 
