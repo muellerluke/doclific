@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
+import { PenToolIcon } from 'lucide-react';
 
 import {
   insertBlock,
@@ -151,6 +152,11 @@ const groups: Group[] = [
         icon: <RadicalIcon />,
         label: 'Equation',
         value: KEYS.equation,
+      },
+      {
+        icon: <PenToolIcon />,
+        label: 'Draw',
+        value: KEYS.excalidraw,
       },
       {
         icon: <Code2 />,

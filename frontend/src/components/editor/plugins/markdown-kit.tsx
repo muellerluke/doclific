@@ -10,6 +10,41 @@ export const MarkdownKit = [
       plainMarks: [KEYS.suggestion, KEYS.comment],
       remarkPlugins: [remarkMath, remarkGfm, remarkMdx, remarkMention],
       rules: {
+        [KEYS.excalidraw]: {
+          serialize: (slateNode) => {
+            console.log(slateNode);
+            return {
+              type: 'mdxJsxFlowElement',
+              name: 'Excalidraw',
+              attributes: [
+                {
+                  type: 'mdxJsxAttribute',
+                  name: 'data',
+                  value: JSON.stringify(slateNode.data),
+                },
+              ],
+              children: [{ type: 'text', value: '' }],
+            };
+          },
+        },
+        Excalidraw: {
+          deserialize: (mdastNode) => {
+            console.log(mdastNode);
+            const dataAttr = mdastNode.attributes?.find((a: { name: string }) => a.name === 'data');
+            const data = dataAttr?.value ? JSON.parse(dataAttr.value) : { elements: [], state: {} };
+
+            console.log({
+              type: KEYS.excalidraw,
+              data,
+              children: [{ text: '' }],
+            });
+            return {
+              type: KEYS.excalidraw,
+              data,
+              children: [{ text: '' }],
+            };
+          },
+        },
         [CodebaseSnippetType]: {
           serialize: (slateNode) => {
             return {

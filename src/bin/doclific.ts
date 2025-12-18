@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { spawn } from 'child_process';
 import { startServer } from '../server/index.js';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import open from 'open';
 
 const command = process.argv[2];
 
@@ -37,18 +37,5 @@ if (command === 'init') {
 	startServer(Number(port));
 
 	// Optional: open browser automatically
-	openBrowser(`http://localhost:${port}`);
-}
-
-function openBrowser(url: string) {
-	if (process.platform === 'win32') {
-		spawn('cmd', ['/c', 'start', '', url], {
-			detached: true,
-			stdio: 'ignore',
-		});
-	} else if (process.platform === 'darwin') {
-		spawn('open', [url], { detached: true, stdio: 'ignore' });
-	} else {
-		spawn('xdg-open', [url], { detached: true, stdio: 'ignore' });
-	}
+	open(`http://localhost:${port}`);
 }

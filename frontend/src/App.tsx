@@ -6,7 +6,7 @@ import Editor from "./pages/editor"
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Layout>
         <Routes>
           <Route path="/" element={<div></div>} />

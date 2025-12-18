@@ -33,6 +33,7 @@ export default function RTE() {
                 <div className="max-w-4xl mx-auto w-full relative p-4">
                     {docQuery.data && (
                         <MarkdownDemo
+                            key={filePath}
                             initialMarkdown={docQuery.data}
                             onUpdate={onUpdate}
                         />

@@ -1,6 +1,6 @@
 {
 	"name": "doclific",
-	"version": "0.2.7",
+	"version": "0.2.8",
 	"type": "module",
 	"bin": {
 		"doclific": "./dist/bin/doclific.js"
@@ -26,6 +26,7 @@
 		"child_process": "^1.0.2",
 		"cors": "^2.8.5",
 		"express": "^5.2.1",
+		"open": "^11.0.0",
 		"util": "^0.12.5",
 		"zod": "^4.1.13"
 	},

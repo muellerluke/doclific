@@ -35,6 +35,7 @@ import { TableKit } from './plugins/table-kit';
 import { TocKit } from './plugins/toc-kit';
 import { ToggleKit } from './plugins/toggle-kit';
 import { CodebaseSnippetPlugin } from './plugins/codebase-kit';
+import { ExcalidrawKit } from './plugins/excalidraw-kit';
 
 export const EditorKit = [
   ...BlockMenuKit,
@@ -83,6 +84,8 @@ export const EditorKit = [
   // UI
   ...BlockPlaceholderKit,
   ...FloatingToolbarKit,
+
+  ...ExcalidrawKit,
 
   // Custom
   CodebaseSnippetPlugin,
