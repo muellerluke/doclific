@@ -21,6 +21,7 @@ export default function RTE() {
     })
 
     const onUpdate = (content: string) => {
+        console.log(content);
         updateDoc.mutate({
             filePath,
             content,

@@ -12,7 +12,6 @@ export const MarkdownKit = [
       rules: {
         [KEYS.excalidraw]: {
           serialize: (slateNode) => {
-            console.log(slateNode);
             return {
               type: 'mdxJsxFlowElement',
               name: 'Excalidraw',
@@ -29,15 +28,9 @@ export const MarkdownKit = [
         },
         Excalidraw: {
           deserialize: (mdastNode) => {
-            console.log(mdastNode);
             const dataAttr = mdastNode.attributes?.find((a: { name: string }) => a.name === 'data');
             const data = dataAttr?.value ? JSON.parse(dataAttr.value) : { elements: [], state: {} };
-
-            console.log({
-              type: KEYS.excalidraw,
-              data,
-              children: [{ text: '' }],
-            });
+            data.state.collaborators = new Map(Object.entries(data.state.collaborators || {}));
             return {
               type: KEYS.excalidraw,
               data,

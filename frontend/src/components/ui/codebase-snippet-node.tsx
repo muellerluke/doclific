@@ -10,6 +10,30 @@ import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
 
+// Singleton highlighter cache
+let highlighterPromise: Promise<Highlighter> | null = null;
+const loadedLangs = new Set<string>();
+
+async function getHighlighter(lang: string): Promise<Highlighter> {
+    if (!highlighterPromise) {
+        highlighterPromise = createHighlighter({
+            themes: ['github-dark', 'github-light'],
+            langs: [lang, 'text'],
+        });
+        loadedLangs.add(lang);
+        loadedLangs.add('text');
+    }
+
+    const highlighter = await highlighterPromise;
+
+    if (!loadedLangs.has(lang)) {
+        await highlighter.loadLanguage(lang as Parameters<Highlighter['loadLanguage']>[0]);
+        loadedLangs.add(lang);
+    }
+
+    return highlighter;
+}
+
 export function CodebaseSnippetElement({ attributes, children, element }: PlateElementProps<CodebaseSnippetElementType>) {
     const { theme } = useTheme();
     const editor = useEditorRef();
@@ -32,21 +56,13 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     useEffect(() => {
         let mounted = true;
 
-        const initHighlighter = async () => {
-            try {
-                const h = await createHighlighter({
-                    themes: ['github-dark', 'github-light'],
-                    langs: [language, 'text'],
-                });
-                if (mounted) {
-                    setHighlighter(h);
-                }
-            } catch (error) {
-                console.error('Failed to create highlighter:', error);
+        getHighlighter(language).then((h) => {
+            if (mounted) {
+                setHighlighter(h);
             }
-        };
-
-        initHighlighter();
+        }).catch((error) => {
+            console.error('Failed to get highlighter:', error);
+        });
 
         return () => {
             mounted = false;
