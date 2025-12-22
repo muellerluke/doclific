@@ -45,8 +45,8 @@ export const MarkdownKit = [
               name: 'CodebaseSnippet', // MDX tag name
               attributes: [
                 { type: 'mdxJsxAttribute', name: 'filePath', value: slateNode.filePath || '' },
-                { type: 'mdxJsxAttribute', name: 'lineStart', value: slateNode.lineStart || '' },
-                { type: 'mdxJsxAttribute', name: 'lineEnd', value: slateNode.lineEnd || '' },
+                { type: 'mdxJsxAttribute', name: 'lineStart', value: String(slateNode.lineStart || '') },
+                { type: 'mdxJsxAttribute', name: 'lineEnd', value: String(slateNode.lineEnd || '') },
               ],
               children: [{ type: 'text', value: '' }],
             };

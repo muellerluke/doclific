@@ -30,23 +30,19 @@ const richTextSchema = z.union([textNodeSchema, codebaseSnippetSchema, listNodeS
 
 type RichTextNode = z.infer<typeof richTextSchema>;
 
-const getProjectStructureTool = {
-	description:
-		'Get the folder project structure to determine which files need to be read and included in the analysis or referenced',
-	inputSchema: z.object({}),
-	execute: async () => {
-		const projectStructure = await getFlatFileList();
-		return projectStructure.join('\n');
-	},
-};
-
 const getFileContentsTool = {
-	description: 'Get the contents of a file by file path',
+	description: 'Get the contents of a file by file path. Multiple file paths can be provided.',
 	inputSchema: z.object({
-		filePath: z.string(),
+		filePaths: z.array(z.string()),
 	}),
-	execute: async ({ filePath }: { filePath: string }) => {
-		return await getFileContents(filePath);
+	execute: async ({ filePaths }: { filePaths: string[] }) => {
+		const contents = await Promise.all(
+			filePaths.map(async (filePath) => {
+				const contents = await getFileContents(filePath);
+				return contents.split('\n').map((line, index) => `${index + 1}: ${line}`);
+			})
+		);
+		return contents.flat();
 	},
 };
 
@@ -63,15 +59,14 @@ export class AIModel {
 		const result = await generateText({
 			model: this.model,
 			system: `
-The project structure is: ${fileContents.join('\n')}
-
-
 When writing documentation:
 1. Explain concepts using "text" nodes
 2. Reference implementation using "codebase snippet" nodes
 3. Use "list" nodes only for summaries
 
 If you need to show code, DO NOT paste it — reference it.
+
+The project structure is: ${fileContents.join('\n')}
 `,
 			experimental_output: Output.object({
 				schema: z.object({
@@ -79,7 +74,6 @@ If you need to show code, DO NOT paste it — reference it.
 				}),
 			}),
 			tools: {
-				getProjectStructure: tool(getProjectStructureTool),
 				getFileContents: tool(getFileContentsTool),
 			},
 			stopWhen: stepCountIs(10),

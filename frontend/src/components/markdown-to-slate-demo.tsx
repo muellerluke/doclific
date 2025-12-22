@@ -12,7 +12,6 @@ export default function MarkdownDemo(
   { initialMarkdown, onUpdate }: { initialMarkdown: string, onUpdate: (content: string) => void }
 ) {
   const previousMarkdown = useRef<string>('');
-  const previousInitialMarkdown = useRef<string>('');
   const editor = usePlateEditor(
     {
       plugins: EditorKit,
@@ -29,30 +28,8 @@ export default function MarkdownDemo(
     []
   );
 
-  // Update editor when initialMarkdown changes
-  useEffect(() => {
-    if (initialMarkdown !== previousInitialMarkdown.current) {
-      previousInitialMarkdown.current = initialMarkdown;
-      const newValue = editor.getApi(MarkdownPlugin).markdown.deserialize(initialMarkdown, {
-        remarkPlugins: [
-          remarkMath,
-          remarkGfm,
-          remarkMdx,
-          remarkMention,
-          remarkEmoji as any,
-        ],
-      });
-      editor.tf.replaceNodes(newValue, {
-        at: [],
-        children: true,
-      });
-      previousMarkdown.current = initialMarkdown;
-    }
-  }, [initialMarkdown, editor]);
-
   // useEffect that runs every 250ms and logs the serialized markdown to the console
   useEffect(() => {
-    console.log(editor.children);
     const interval = setInterval(() => {
       // log current editor value to the console
       const serialized = editor.getApi(MarkdownPlugin).markdown.serialize();
@@ -62,7 +39,7 @@ export default function MarkdownDemo(
       }
     }, 500);
     return () => clearInterval(interval);
-  }, [editor, onUpdate]);
+  }, [onUpdate, editor]);
 
   return (
     <Plate editor={editor}>

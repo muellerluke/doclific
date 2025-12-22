@@ -9,6 +9,7 @@ import { orpc } from '@/lib/orpc';
 import { type TElement } from 'platejs';
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from './spinner';
+import { MarkdownPlugin } from '@platejs/markdown';
 
 export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>) {
     const editor = useEditorRef();
@@ -47,9 +48,19 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
             const insertPath = [currentPath[0] + 1];
             editor.setOption(CustomAIPlugin, 'insertPath', insertPath);
 
-            editor.tf.insertNodes(nodes as TElement[], {
+            editor.tf.insertNodes(nodes, {
                 at: insertPath,
             });
+
+            try {
+                const serialized = editor.getApi(MarkdownPlugin).markdown.serialize();
+                console.log('Serialized after insertion:', serialized);
+            } catch (error) {
+                console.error('Serialization error:', error);
+            }
+
+            const nodeAtPath = editor.api.node({ at: insertPath });
+            console.log('Node at insert path:', nodeAtPath);
 
             // Store pending nodes and switch to accept/reject mode
             editor.setOption(CustomAIPlugin, 'mode', null);
@@ -82,7 +93,6 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
                             editor.getApi(CustomAIPlugin).aiChat.hide(editor);
                         }
                     }}
-                    onBlur={() => !isSubmitting && editor.getApi(CustomAIPlugin).aiChat.hide(editor)}
                 />
                 <InputGroupAddon>
                     <Sparkle className="size-4" />
