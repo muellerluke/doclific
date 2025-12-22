@@ -1,26 +1,31 @@
 import { usePluginOption, useEditorRef, PlateElement, type PlateElementProps } from 'platejs/react';
 import { CustomAIPlugin } from '../editor/plugins/custom-ai-kit';
 import {
-    InlineCombobox,
-    InlineComboboxInput,
-    InlineComboboxEmpty,
-    InlineComboboxContent,
-    InlineComboboxItem,
-    InlineComboboxGroup,
-} from './inline-combobox';
-import { type TComboboxInputElement } from 'platejs';
-import { Check, X, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+    type TComboboxInputElement
+} from 'platejs';
+import { Sparkle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { orpc } from '@/lib/orpc';
-import type { TElement } from 'platejs';
+import { type TElement } from 'platejs';
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { Spinner } from './spinner';
 
 export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>) {
-    console.log('AIPromptElement');
     const editor = useEditorRef();
     const open = usePluginOption(CustomAIPlugin, 'open');
     const mode = usePluginOption(CustomAIPlugin, 'mode');
     const [prompt, setPrompt] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Autofocus input when component becomes visible
+    useEffect(() => {
+        if (open && mode === 'prompt' && inputRef.current) {
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 0);
+        }
+    }, [open, mode]);
 
     const handleSubmit = async (promptValue: string) => {
         if (!promptValue.trim() || isSubmitting) return;
@@ -42,16 +47,12 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
             const insertPath = [currentPath[0] + 1];
             editor.setOption(CustomAIPlugin, 'insertPath', insertPath);
 
-            // Temporarily insert nodes after the current block
-            editor.tf.withoutSaving(() => {
-                editor.tf.insertNodes(nodes as TElement[], {
-                    at: insertPath,
-                });
+            editor.tf.insertNodes(nodes as TElement[], {
+                at: insertPath,
             });
 
             // Store pending nodes and switch to accept/reject mode
-            editor.setOption(CustomAIPlugin, 'pendingNodes', nodes);
-            editor.setOption(CustomAIPlugin, 'mode', 'accept-reject');
+            editor.setOption(CustomAIPlugin, 'mode', null);
             editor.setOption(CustomAIPlugin, 'status', 'completed');
             setPrompt('');
         } catch (error) {
@@ -62,20 +63,16 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
         }
     };
 
-    console.log('open', open);
-    console.log('mode', mode);
-
     if (!open || mode !== 'prompt') return null;
 
     return (
         <PlateElement {...props} as="span">
-            <InlineCombobox
-                element={props.element}
-                trigger="/"
-                value={prompt}
-                setValue={setPrompt}
-            >
-                <InlineComboboxInput
+            <InputGroup>
+                <InputGroupInput
+                    ref={inputRef}
+                    placeholder="Ask me to document anything. Press Enter to submit. Press Escape to cancel."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -85,57 +82,17 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
                             editor.getApi(CustomAIPlugin).aiChat.hide(editor);
                         }
                     }}
+                    onBlur={() => !isSubmitting && editor.getApi(CustomAIPlugin).aiChat.hide(editor)}
                 />
-                <InlineComboboxContent>
-                    {isSubmitting ? (
-                        <InlineComboboxGroup>
-                            <InlineComboboxItem value="thinking" disabled>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Thinking...
-                            </InlineComboboxItem>
-                        </InlineComboboxGroup>
-                    ) : (
-                        <InlineComboboxEmpty>
-                            Press Enter to generate, Esc to cancel
-                        </InlineComboboxEmpty>
-                    )}
-                </InlineComboboxContent>
-            </InlineCombobox>
-            {props.children}
-        </PlateElement>
-    );
-}
-
-export function AIAcceptRejectElement(props: PlateElementProps<TComboboxInputElement>) {
-    const editor = useEditorRef();
-    const open = usePluginOption(CustomAIPlugin, 'open');
-    const mode = usePluginOption(CustomAIPlugin, 'mode');
-
-    if (!open || mode !== 'accept-reject') return null;
-
-    return (
-        <PlateElement {...props} as="span">
-            <InlineCombobox element={props.element} trigger="/">
-                <InlineComboboxInput />
-                <InlineComboboxContent>
-                    <InlineComboboxGroup>
-                        <InlineComboboxItem
-                            value="accept"
-                            onClick={() => editor.getApi(CustomAIPlugin).aiChat.accept(editor)}
-                        >
-                            <Check className="mr-2 h-4 w-4 text-green-600" />
-                            Accept
-                        </InlineComboboxItem>
-                        <InlineComboboxItem
-                            value="reject"
-                            onClick={() => editor.getApi(CustomAIPlugin).aiChat.reject(editor)}
-                        >
-                            <X className="mr-2 h-4 w-4 text-red-600" />
-                            Reject
-                        </InlineComboboxItem>
-                    </InlineComboboxGroup>
-                </InlineComboboxContent>
-            </InlineCombobox>
+                <InputGroupAddon>
+                    <Sparkle className="size-4" />
+                </InputGroupAddon>
+                {isSubmitting &&
+                    <InputGroupAddon align="inline-end">
+                        <Spinner />
+                    </InputGroupAddon>
+                }
+            </InputGroup>
             {props.children}
         </PlateElement>
     );

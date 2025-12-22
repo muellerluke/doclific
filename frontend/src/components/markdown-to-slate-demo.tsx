@@ -52,6 +52,7 @@ export default function MarkdownDemo(
 
   // useEffect that runs every 250ms and logs the serialized markdown to the console
   useEffect(() => {
+    console.log(editor.children);
     const interval = setInterval(() => {
       // log current editor value to the console
       const serialized = editor.getApi(MarkdownPlugin).markdown.serialize();

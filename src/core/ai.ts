@@ -58,9 +58,14 @@ export class AIModel {
 	}
 
 	async generateRichText(prompt: string) {
+		const fileContents = await getFlatFileList();
+
 		const result = await generateText({
 			model: this.model,
 			system: `
+The project structure is: ${fileContents.join('\n')}
+
+
 When writing documentation:
 1. Explain concepts using "text" nodes
 2. Reference implementation using "codebase snippet" nodes
