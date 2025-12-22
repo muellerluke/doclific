@@ -9,6 +9,7 @@ import { createDoc, getDoc, getDocs, updateDoc } from '../core/docs.js';
 import { z } from 'zod';
 import { getFileContents, getFolderContents } from '../core/codebase.js';
 import path from 'path';
+import { AIModel, serializeCustomRichTextNodes } from '../core/ai.js';
 
 export const router = {
 	git: {
@@ -58,6 +59,14 @@ export const router = {
 				contents: await getFileContents(filePath),
 				fullPath: path.join(currentDir, filePath),
 			};
+		}),
+	},
+	ai: {
+		generateRichText: os.input(z.object({ prompt: z.string() })).handler(async ({ input }) => {
+			const { prompt } = input;
+			const ai = new AIModel();
+			const result = await ai.generateRichText(prompt);
+			return serializeCustomRichTextNodes(result.experimental_output.nodes);
 		}),
 	},
 };
