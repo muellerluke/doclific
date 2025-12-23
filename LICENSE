@@ -1,17 +1,71 @@
 Business Source License 1.1
 
-Licensor: Luke Mueller
-Licensed Work: Doclific
+License
+
+The Business Source License (this document, or the “License”) governs use of the
+Licensed Work.
+
+Use of the Licensed Work is permitted only as explicitly granted below.
+
+
+Parameters
+
+Licensor:
+Luke Mueller
+
+Licensed Work:
+Doclific
+
 Additional Use Grant:
-You may use this software internally, including in commercial environments.
+You may use, modify, and deploy the Licensed Work internally, including for
+commercial purposes, provided that you do not redistribute the Licensed Work,
+offer it as a hosted or managed service, sublicense it, white-label it, or
+distribute modified versions outside your organization.
 
-Restrictions:
-You may not:
-- Redistribute, sell, sublicense, or white-label the software
-- Offer the software as a hosted or managed service
-- Distribute modified versions of the software
+Change Date:
+2025-12-22
 
-Change Date: 2029-01-01
-Change License: Apache License, Version 2.0
+Change License:
+Apache License, Version 2.0
 
-This license does not grant trademark rights.
+
+Restrictions
+
+Until the Change Date, you may not:
+
+- Redistribute, sell, sublicense, or otherwise transfer the Licensed Work
+- Offer the Licensed Work as a hosted, managed, or software-as-a-service offering
+- Distribute modified versions of the Licensed Work
+- White-label the Licensed Work or represent it as your own
+
+
+Change License
+
+On the Change Date specified above, this Licensed Work will automatically be made
+available under the Change License, and all restrictions above will cease to
+apply.
+
+
+Trademarks
+
+This License does not grant permission to use the trade names, trademarks,
+service marks, or product names of the Licensor, except as required for reasonable
+and customary use in describing the origin of the Licensed Work.
+
+
+Disclaimer of Warranty
+
+The Licensed Work is provided “AS IS”, without warranty of any kind, express or
+implied, including but not limited to warranties of merchantability, fitness for
+a particular purpose, and non-infringement.
+
+
+Limitation of Liability
+
+In no event shall the Licensor be liable for any claim, damages, or other
+liability arising from use of the Licensed Work.
+
+
+Copyright
+
+Copyright © 2025 Luke Mueller

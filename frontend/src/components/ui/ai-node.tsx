@@ -6,7 +6,6 @@ import {
 import { Sparkle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { orpc } from '@/lib/orpc';
-import { type TElement } from 'platejs';
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from './spinner';
 import { MarkdownPlugin } from '@platejs/markdown';

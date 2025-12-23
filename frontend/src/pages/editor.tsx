@@ -1,7 +1,7 @@
 import { orpcTs } from "@/lib/orpc"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
-import MarkdownDemo from "@/components/markdown-to-slate-demo";
+import RichTextEditor from "@/components/editor-container";
 
 export default function RTE() {
 
@@ -32,7 +32,7 @@ export default function RTE() {
             <div className="absolute inset-0 overflow-y-auto">
                 <div className="max-w-4xl mx-auto w-full relative p-4">
                     {docQuery.data && (
-                        <MarkdownDemo
+                        <RichTextEditor
                             key={filePath}
                             initialMarkdown={docQuery.data}
                             onUpdate={onUpdate}

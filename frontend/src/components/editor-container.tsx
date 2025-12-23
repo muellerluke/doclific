@@ -8,7 +8,7 @@ import { useEffect, useRef } from 'react';
 import { EditorKit } from '@/components/editor/editor-kit';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 
-export default function MarkdownDemo(
+export default function RichTextEditor(
   { initialMarkdown, onUpdate }: { initialMarkdown: string, onUpdate: (content: string) => void }
 ) {
   const previousMarkdown = useRef<string>('');

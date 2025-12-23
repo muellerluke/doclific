@@ -46,7 +46,7 @@ export function startServer(port: number = 6767) {
 		}
 	});
 
-	app.get('/{*splat}', (req, res) => {
+	app.get('/{*splat}', (_, res) => {
 		const html = fs.readFileSync(path.join(frontendDist, 'index.html'), 'utf8');
 		res.send(html.replace(': BACKEND_PORT', `: ${port.toString()}`));
 	});

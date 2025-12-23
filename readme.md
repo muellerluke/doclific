@@ -48,6 +48,36 @@ doclific --port=8080
 - `doclific` - Starts the Doclific web server (default port: 6767)
 - `doclific -p=<port>` - Starts the server on a custom port
 - `doclific --port=<port>` - Alternative syntax for custom port
+- `doclific get` - Returns the current configuration
+- `doclific set <KEY> <value>` - Sets a configuration value
+
+### Configuration Keys
+
+You can set the following configuration keys:
+
+- `AI_PROVIDER` - AI provider to use (`openai`, `anthropic`, or `google`)
+- `AI_MODEL` - Model name to use (e.g., `gpt-4`, `claude-3-opus-20240229`, `gemini-pro`)
+- `OPENAI_API_KEY` - Your OpenAI API key
+- `ANTHROPIC_API_KEY` - Your Anthropic API key
+- `GOOGLE_API_KEY` - Your Google API key
+
+### Examples
+
+```bash
+# Get current configuration
+doclific get
+
+# Set AI provider
+doclific set AI_PROVIDER openai
+
+# Set AI model
+doclific set AI_MODEL gpt-4
+
+# Set API keys
+doclific set OPENAI_API_KEY sk-your-api-key-here
+doclific set ANTHROPIC_API_KEY sk-ant-your-api-key-here
+doclific set GOOGLE_API_KEY your-api-key-here
+```
 
 ## Usage
 

@@ -1,9 +1,13 @@
 {
 	"name": "doclific",
-	"version": "0.2.9",
+	"version": "0.3.4",
 	"type": "module",
 	"bin": {
 		"doclific": "./dist/bin/doclific.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/muellerluke/doclific"
 	},
 	"scripts": {
 		"build": "tsc",
@@ -17,6 +21,14 @@
 		"LICENSE",
 		"dist",
 		"package.json"
+	],
+	"keywords": [
+		"documentation",
+		"ai",
+		"documentation-tool",
+		"documentation-generator",
+		"documentation-assistant",
+		"documentation-assistant-ai"
 	],
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.56",

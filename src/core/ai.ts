@@ -1,7 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText, LanguageModel, Output, stepCountIs, tool } from 'ai';
+import { generateText, type LanguageModel, Output, stepCountIs, tool } from 'ai';
 import { z } from 'zod';
 import { getFileContents, getFlatFileList } from './codebase.js';
 import { config } from '../bin/doclific.js';
@@ -39,10 +39,16 @@ const getFileContentsTool = {
 		const contents = await Promise.all(
 			filePaths.map(async (filePath) => {
 				const contents = await getFileContents(filePath);
-				return contents.split('\n').map((line, index) => `${index + 1}: ${line}`);
+				return {
+					filePath,
+					contents: contents
+						.split('\n')
+						.map((line, index) => `${index + 1}: ${line}`)
+						.join('\n'),
+				};
 			})
 		);
-		return contents.flat();
+		return contents;
 	},
 };
 

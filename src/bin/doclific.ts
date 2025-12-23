@@ -92,7 +92,3 @@ function setNested(obj: any, key: string, value: any) {
 
 	current[parts.at(-1)!] = value;
 }
-
-function getNested(obj: any, key: string) {
-	return key.split('.').reduce((o, k) => o?.[k], obj);
-}
