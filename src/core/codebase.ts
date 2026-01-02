@@ -58,37 +58,42 @@ export async function getFlatFileList(
 	baseDir = dir,
 	ignoreInstance?: ignore.Ignore
 ): Promise<string[]> {
-	// Load .gitignore on first call
-	if (!ignoreInstance) {
-		const gitignorePath = path.join(baseDir, '.gitignore');
-		let gitignoreContent = '';
-		if (existsSync(gitignorePath)) {
-			gitignoreContent = await fs.readFile(gitignorePath, 'utf8');
+	try {
+		// Load .gitignore on first call
+		if (!ignoreInstance) {
+			const gitignorePath = path.join(baseDir, '.gitignore');
+			let gitignoreContent = '';
+			if (existsSync(gitignorePath)) {
+				gitignoreContent = await fs.readFile(gitignorePath, 'utf8');
+			}
+			ignoreInstance = ignore().add(gitignoreContent);
 		}
-		ignoreInstance = ignore().add(gitignoreContent);
+
+		const items = await fs.readdir(dir, { withFileTypes: true });
+
+		for (const item of items) {
+			const fullPath = path.join(dir, item.name);
+			const relativePath = path.relative(baseDir, fullPath);
+
+			// Check if path should be ignored
+			if (ignoreInstance.ignores(relativePath) || relativePath.startsWith('.git')) {
+				continue;
+			}
+
+			const stats = await fs.stat(fullPath);
+
+			if (stats.isDirectory()) {
+				// Include directory path itself
+				fileList.push(relativePath + '/');
+				// Recurse into the subdirectory
+				await getFlatFileList(fullPath, fileList, baseDir, ignoreInstance);
+			} else {
+				fileList.push(relativePath);
+			}
+		}
+
+		return fileList;
+	} catch (error) {
+		throw new Error(`Failed to get flat file list for ${dir}: ${error}`);
 	}
-
-	const items = await fs.readdir(dir, { withFileTypes: true });
-
-	for (const item of items) {
-		const fullPath = path.join(dir, item.name);
-		const relativePath = path.relative(baseDir, fullPath);
-		const stats = await fs.stat(fullPath);
-
-		// Check if path should be ignored
-		if (ignoreInstance.ignores(relativePath) || relativePath.startsWith('.git')) {
-			continue;
-		}
-
-		if (stats.isDirectory()) {
-			// Include directory path itself
-			fileList.push(relativePath + '/');
-			// Recurse into the subdirectory
-			await getFlatFileList(fullPath, fileList, baseDir, ignoreInstance);
-		} else {
-			fileList.push(relativePath);
-		}
-	}
-
-	return fileList;
 }

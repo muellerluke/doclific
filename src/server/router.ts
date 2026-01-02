@@ -5,7 +5,7 @@ import {
 	getGitUser,
 	getGitUserEmail,
 } from '../core/git.js';
-import { createDoc, getDoc, getDocs, updateDoc } from '../core/docs.js';
+import { createDoc, deleteDoc, getDoc, getDocs, updateDoc } from '../core/docs.js';
 import { z } from 'zod';
 import { getFileContents, getFolderContents } from '../core/codebase.js';
 import path from 'path';
@@ -44,6 +44,10 @@ export const router = {
 				const { filePath, title, icon } = input;
 				return await createDoc(filePath, title, icon);
 			}),
+		deleteDoc: os.input(z.object({ filePath: z.string() })).handler(async ({ input }) => {
+			const { filePath } = input;
+			return await deleteDoc(filePath);
+		}),
 	},
 	codebase: {
 		getFolderContents: os

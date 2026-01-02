@@ -12,8 +12,14 @@ export const CustomAIPlugin = createPlatePlugin({
     api: {
         aiChat: {
             show(editor: PlateEditor) {
+                // delete current block
+                editor.tf.removeNodes({
+                    match: {
+                        type: editor.api.block()?.[0].type,
+                    },
+                });
                 // Insert the AI prompt element at current selection
-                editor.tf.insertNodes({
+                editor.tf.insertNode({
                     type: editor.getType('custom-ai'),
                     children: [{ text: '' }],
                 } as TElement);
@@ -30,6 +36,9 @@ export const CustomAIPlugin = createPlatePlugin({
                         type: editor.getType('custom-ai'),
                     },
                 });
+
+                // set focus to the previous block
+                editor.tf.focus({ at: editor.api.block()?.[1] });
             },
         },
     },

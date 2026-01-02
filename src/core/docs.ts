@@ -86,5 +86,16 @@ export const createDoc = async (filePath: string, title: string, icon: string | 
 		JSON.stringify({ title, icon }, null, 2)
 	);
 	// return the new folder path
-	return newFolderPath;
+	return {
+		filePath: newFolderPath,
+		url: filePath + '/' + newFolderName,
+		title,
+		icon,
+	};
+};
+
+export const deleteDoc = async (filePath: string) => {
+	const currentDir = process.cwd();
+	const fullPath = path.join(currentDir, 'doclific', filePath);
+	await fs.rm(fullPath, { recursive: true });
 };

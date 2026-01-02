@@ -31,10 +31,23 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import React from "react"
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 function CreateDocDialog({
     parentPath,
@@ -49,8 +62,9 @@ function CreateDocDialog({
     const [iconSearch, setIconSearch] = useState("")
     const [showIconPicker, setShowIconPicker] = useState(false)
     const iconPickerRef = useRef<HTMLDivElement>(null)
+    const iconSearchInputRef = useRef<HTMLInputElement>(null)
     const queryClient = useQueryClient()
-
+    const navigate = useNavigate()
     // Close icon picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -63,6 +77,16 @@ function CreateDocDialog({
             return () => document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [showIconPicker])
+
+    // Autofocus input when icon picker opens
+    useEffect(() => {
+        if (showIconPicker && iconSearchInputRef.current) {
+            setTimeout(() => {
+                iconSearchInputRef.current?.focus()
+            }, 0)
+        }
+    }, [showIconPicker])
+
     const createDocMutation = useMutation({
         ...orpcTs.docs.createDoc.mutationOptions(),
         onSuccess: () => {
@@ -75,13 +99,14 @@ function CreateDocDialog({
         },
     })
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        createDocMutation.mutate({
+        const { url } = await createDocMutation.mutateAsync({
             filePath: parentPath,
             title,
             icon: selectedIcon || undefined,
         })
+        navigate(url)
     }
 
     const iconNames = Object.keys(Icons).filter((iconName) => iconName.endsWith("Icon") && iconName !== "createLucideIcon").map((iconName) => iconName.replace("Icon", ""))
@@ -92,12 +117,12 @@ function CreateDocDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {isNested ? (
-                    <SidebarMenuSubButton className="text-muted-foreground hover:text-foreground">
+                    <SidebarMenuSubButton className="text-muted-foreground hover:text-foreground cursor-pointer">
                         <Plus className="size-4 !stroke-current" />
                         <span className="truncate">New doc</span>
                     </SidebarMenuSubButton>
                 ) : (
-                    <SidebarMenuButton className="text-muted-foreground stroke-muted-foreground hover:text-foreground hover:stroke-foreground">
+                    <SidebarMenuButton className="text-muted-foreground stroke-muted-foreground hover:text-foreground hover:stroke-foreground cursor-pointer">
                         <Plus className="size-4 !stroke-current" />
                         <span className="truncate">New doc</span>
                     </SidebarMenuButton>
@@ -106,6 +131,9 @@ function CreateDocDialog({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create New Document</DialogTitle>
+                    <DialogDescription>
+                        Create a new document in the selected folder.
+                    </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
@@ -159,6 +187,7 @@ function CreateDocDialog({
                                         <div className="relative mb-2">
                                             <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                                             <Input
+                                                ref={iconSearchInputRef}
                                                 placeholder="Search icons..."
                                                 value={iconSearch}
                                                 onChange={(e) => setIconSearch(e.target.value)}
@@ -208,6 +237,52 @@ function CreateDocDialog({
     )
 }
 
+function DeleteDocDialog({
+    fullPath,
+}: {
+    fullPath: string
+}) {
+    const [open, setOpen] = useState(false)
+    const queryClient = useQueryClient()
+    const navigate = useNavigate()
+    const deleteDocMutation = useMutation({
+        ...orpcTs.docs.deleteDoc.mutationOptions(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: orpcTs.docs.getDocs.queryKey() })
+            setOpen(false)
+            toast.success("Document deleted successfully")
+
+            // wait 250ms before navigating to an existing document
+            setTimeout(() => {
+                const existingDoc = queryClient.getQueryData(orpcTs.docs.getDocs.queryKey())
+                if (existingDoc && existingDoc.length > 0) {
+                    navigate(`/${existingDoc[0].name}`)
+                }
+            }, 250)
+        },
+    })
+
+    return (
+        <AlertDialog open={open} onOpenChange={setOpen}>
+            <AlertDialogTrigger asChild className="p-0 border-none bg-transparent hidden group-hover/item:block cursor-pointer">
+                <Icons.TrashIcon className="size-4 stroke-muted-foreground" />
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete this document?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteDocMutation.mutate({ filePath: fullPath })}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )
+}
+
 export function AppSidebar() {
     const navigate = useNavigate()
     const sidebarData = useQuery({
@@ -243,21 +318,26 @@ export function AppSidebar() {
 
         if (isNested) {
             return (
-                <>
+                <React.Fragment key={doc.name}>
                     <SidebarMenuSubItem key={fullPath}>
                         <SidebarMenuSubButton
-                            className="group cursor-pointer"
+                            className="group/item cursor-pointer"
                             onClick={() => navigate(`/${fullPath}`)}
                         >
-                            <ChevronRight
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleExpanded(fullPath)
-                                }}
-                                className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                            />
-                            {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
-                            <span className="truncate">{doc.title}</span>
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                    <ChevronRight
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleExpanded(fullPath)
+                                        }}
+                                        className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                                    />
+                                    {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon size={16} />}
+                                    <span className="truncate">{doc.title}</span>
+                                </div>
+                                <DeleteDocDialog fullPath={fullPath} />
+                            </div>
                         </SidebarMenuSubButton>
                         {isExpanded && (
                             <SidebarMenuSub>
@@ -271,25 +351,30 @@ export function AppSidebar() {
                             </SidebarMenuSub>
                         )}
                     </SidebarMenuSubItem>
-                </>
+                </React.Fragment>
             )
         }
 
         return (
             <SidebarMenuItem key={fullPath}>
                 <SidebarMenuButton
-                    className="group cursor-pointer"
+                    className="group/item cursor-pointer"
                     onClick={() => navigate(`/${fullPath}`)}
                 >
-                    <ChevronRight
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            toggleExpanded(fullPath)
-                        }}
-                        className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                    />
-                    {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} /> : <FileIcon />}
-                    <span className="truncate font-medium">{doc.title}</span>
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                            <ChevronRight
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleExpanded(fullPath)
+                                }}
+                                className={`size-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                            />
+                            {doc.icon ? <DynamicIcon name={doc.icon as LucideIconName} size={16} /> : <FileIcon size={16} />}
+                            <span className="truncate font-medium">{doc.title}</span>
+                        </div>
+                        <DeleteDocDialog fullPath={fullPath} />
+                    </div>
                 </SidebarMenuButton>
                 {isExpanded && (
                     <SidebarMenuSub>

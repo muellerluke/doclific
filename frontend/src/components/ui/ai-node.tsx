@@ -8,7 +8,6 @@ import { useState, useRef, useEffect } from 'react';
 import { orpc } from '@/lib/orpc';
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from './spinner';
-import { MarkdownPlugin } from '@platejs/markdown';
 
 export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>) {
     const editor = useEditorRef();
@@ -51,16 +50,6 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
                 at: insertPath,
             });
 
-            try {
-                const serialized = editor.getApi(MarkdownPlugin).markdown.serialize();
-                console.log('Serialized after insertion:', serialized);
-            } catch (error) {
-                console.error('Serialization error:', error);
-            }
-
-            const nodeAtPath = editor.api.node({ at: insertPath });
-            console.log('Node at insert path:', nodeAtPath);
-
             // Store pending nodes and switch to accept/reject mode
             editor.setOption(CustomAIPlugin, 'mode', null);
             editor.setOption(CustomAIPlugin, 'status', 'completed');
@@ -88,7 +77,7 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
                             e.preventDefault();
                             handleSubmit(prompt);
                         }
-                        if (e.key === 'Escape') {
+                        if (e.key === 'Escape' || (e.key === 'Backspace' && prompt.length === 0)) {
                             editor.getApi(CustomAIPlugin).aiChat.hide(editor);
                         }
                     }}
