@@ -5,11 +5,28 @@ import { existsSync } from 'fs';
 import path from 'path';
 import open from 'open';
 import os from 'os';
+import pkg from '../../package.json' with { type: 'json' };
 
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'doclific');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const PACKAGE_NAME = 'doclific';
+const PACKAGE_VERSION = pkg.version;
 
 export let config: Record<string, any> = {};
+
+// check that we're on the latest version
+try {
+	const res = await fetch(`https://registry.npmjs.org/${PACKAGE_NAME}/latest`);
+	const data = (await res.json()) as { version: string };
+	const latestVersion = data.version;
+	if (latestVersion !== PACKAGE_VERSION) {
+		console.log(`Ope. Looks like you're not on the latest version of ${PACKAGE_NAME}.`);
+		console.log(`You can update by running: npm install -g ${PACKAGE_NAME}`);
+		process.exit(1);
+	}
+} catch (error) {
+	console.error('Failed to check for updates:', error);
+}
 
 const command = process.argv[2];
 

@@ -1,5 +1,5 @@
-/*import { createPlatePlugin } from "platejs/react";
-import { ERDElement } from "@/components/ui/erd-node";
+import { createPlatePlugin } from "platejs/react";
+import { ErdNode } from "@/components/ui/erd-node";
 
 export const ERDType = 'ERD';
 
@@ -21,7 +21,6 @@ export interface Field {
     nullable: boolean;
     primaryKey?: boolean;
     unique?: boolean;
-    default?: string;
 }
 
 export interface Entity {
@@ -34,7 +33,7 @@ export interface Entity {
     fields: Field[];
 }
 
-export type Cardinality = '1:1' | '1:N' | 'N:M';
+export type Cardinality = '1:1' | '1:N' | 'N:N' | 'N:1';
 
 export interface Relationship {
     id: string;
@@ -47,7 +46,7 @@ export interface Relationship {
 }
 
 
-export interface ERDElementType {
+export interface ErdNodeType {
     type: typeof ERDType;
     entities: Entity[];
     relationships: Relationship[];
@@ -61,6 +60,6 @@ export const ERDPlugin = createPlatePlugin({
     node: {
         isElement: true,
         isVoid: true,
-        component: ERDElement
+        component: ErdNode
     }
-})*/
+})

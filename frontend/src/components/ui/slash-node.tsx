@@ -17,6 +17,7 @@ import {
   Square,
   Table,
   TableOfContentsIcon,
+  Table2Icon,
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
@@ -37,6 +38,7 @@ import {
 } from './inline-combobox';
 import { CodebaseSnippetType } from '../editor/plugins/codebase-kit';
 import { CustomAIPlugin } from '../editor/plugins/custom-ai-kit';
+import { ERDType } from '../editor/plugins/erd-kit';
 
 type Group = {
   group: string;
@@ -176,6 +178,11 @@ const groups: Group[] = [
         icon: <Code2 />,
         label: 'Codebase Snippet',
         value: CodebaseSnippetType,
+      },
+      {
+        icon: <Table2Icon />,
+        label: 'Entity-Relationship Diagram',
+        value: ERDType,
       },
     ].map((item) => ({
       ...item,

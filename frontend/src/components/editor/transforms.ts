@@ -20,6 +20,7 @@ import { TablePlugin } from '@platejs/table/react';
 import { insertToc } from '@platejs/toc';
 import { type NodeEntry, type Path, type TElement, KEYS, PathApi } from 'platejs';
 import { CodebaseSnippetType } from './plugins/codebase-kit';
+import { ERDType } from './plugins/erd-kit';
 
 const ACTION_THREE_COLUMNS = 'action_three_columns';
 
@@ -101,6 +102,15 @@ export const insertBlock = (
 				lineEnd: '',
 				children: [{ text: '' }],
 			});
+		} else if (type === ERDType) {
+			editor.tf.insertNodes({
+				type: ERDType,
+				entities: [],
+				relationships: [],
+				children: [{ text: '' }],
+			});
+
+			console.log(editor.children);
 		} else {
 			editor.tf.insertNodes(editor.api.create.block({ type }), {
 				at: PathApi.next(path),

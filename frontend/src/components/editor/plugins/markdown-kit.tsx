@@ -3,6 +3,7 @@ import { KEYS } from 'platejs';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { CodebaseSnippetType } from './codebase-kit';
+import { ERDType } from './erd-kit';
 
 export const MarkdownKit = [
   MarkdownPlugin.configure({
@@ -37,6 +38,32 @@ export const MarkdownKit = [
               children: [{ text: '' }],
             };
           },
+        },
+        [ERDType]: {
+          serialize: (slateNode) => {
+            return {
+              type: 'mdxJsxFlowElement',
+              name: ERDType,
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'entities', value: slateNode.entities ? JSON.stringify(slateNode.entities) : '[]' },
+                { type: 'mdxJsxAttribute', name: 'relationships', value: slateNode.relationships ? JSON.stringify(slateNode.relationships) : '[]' },
+              ],
+              children: [{ type: 'text', value: '' }],
+            };
+          },
+          deserialize: (mdastNode) => {
+            const getAttr = (name: string) => {
+              const attr = mdastNode.attributes?.find((a: { name: string }) => a.name === name);
+              return attr?.value ? JSON.parse(attr.value) : [];
+            };
+
+            return {
+              type: ERDType,
+              entities: getAttr('entities'),
+              relationships: getAttr('relationships'),
+              children: [{ text: '' }],
+            }
+          }
         },
         [CodebaseSnippetType]: {
           serialize: (slateNode) => {
