@@ -1,0 +1,57 @@
+​​
+
+# Routing Architecture
+
+The application employs a dual-layered routing system: a Next.js App Router for frontend navigation and an oRPC-based schema for backend API procedures. This architecture ensures type safety across the network boundary while leveraging standard web routing for the user interface.
+
+## Backend Routing (oRPC)
+
+The backend does not use traditional RESTful path-based routing in the way Express or Fastify might. Instead, it defines a hierarchical 'Router' object where each key represents a procedure or a nested namespace. This router is then served via an RPCHandler from the @orpc/server package.
+
+<CodebaseSnippet filePath="packages/backend/src/router.ts" lineStart="23" lineEnd="51">
+
+</CodebaseSnippet>
+
+The backend server listens for incoming HTTP requests and delegates them to the oRPC handler. If a request doesn't match a defined procedure in the router object, it returns a 404 error.
+
+<CodebaseSnippet filePath="packages/backend/src/index.ts" lineStart="11" lineEnd="37">
+
+</CodebaseSnippet>
+
+## Frontend Routing (Next.js)
+
+The application contains two separate Next.js applications, both utilizing the App Router for file-system-based routing.
+
+### Platform App
+
+The 'platform' application manages the admin dashboard and uses nested layouts for authenticated sections. Routing is organized under the /account directory.
+
+* /login and /register: Public authentication pages.
+* /account: Base path for authenticated user operations.
+* /account/website-builder: Interactive editor for managing site pages and components.
+* /account/patients: Management interface for patient records.
+* /account/content: Interface for managing services and site content.
+
+The Platform uses a layout to provide consistent navigation and dynamically determines the page title based on the current pathname.
+
+<CodebaseSnippet filePath="packages/platform/app/account/layout.tsx" lineStart="10" lineEnd="29">
+
+</CodebaseSnippet>
+
+### Website App
+
+The 'website' application is the public-facing site. It uses a dynamic approach where the content is fetched from the backend based on the domain and path, effectively decoupling the URL structure from the underlying React components.
+
+<CodebaseSnippet filePath="packages/website/app/page.tsx" lineStart="1" lineEnd="9">
+
+</CodebaseSnippet>
+
+## Bridging Frontend and Backend
+
+Communication between the frontend and backend 'routes' is handled by the oRPC client. This client allows the frontend to call backend procedures as if they were local functions, while maintaining the hierarchical structure defined in the backend router.
+
+<CodebaseSnippet filePath="packages/platform/lib/orpc.ts" lineStart="30" lineEnd="32">
+
+</CodebaseSnippet>
+
+​
