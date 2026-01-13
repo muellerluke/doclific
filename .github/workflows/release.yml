@@ -27,7 +27,7 @@ jobs:
                   node-version: '20'
 
             - name: Install frontend deps
-              working-directory: web
+              working-directory: web/frontend
               run: npm ci
 
             - name: Build release artifacts
