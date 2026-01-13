@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 VERSION="$1"
-if [ -z "$VERSION" ]; then
+if [ -z "${VERSION:-}" ]; then
   echo "Usage: ./scripts/release.sh v1.2.3"
   exit 1
 fi
 
-echo "🚀 Releasing $VERSION"
+APP_NAME="doclific"
+DIST_DIR="dist"
 
-# Build frontend once
+echo "🚀 Releasing $APP_NAME $VERSION"
+
+# ----------------------------
+# Build frontend (once)
+# ----------------------------
+echo "🌐 Building frontend"
 cd web/frontend
 npm ci
 npm run build
 cd ../..
 
+# ----------------------------
+# Build binaries
+# ----------------------------
 PLATFORMS=(
   "linux amd64"
   "linux arm64"
@@ -23,21 +32,48 @@ PLATFORMS=(
   "windows amd64"
 )
 
-mkdir -p dist
+rm -rf "$DIST_DIR"
+mkdir -p "$DIST_DIR"
 
 for PLATFORM in "${PLATFORMS[@]}"; do
   read OS ARCH <<< "$PLATFORM"
 
-  OUT="dist/doclific-$OS-$ARCH"
+  BIN_NAME="$APP_NAME"
+  EXT=""
+
   if [ "$OS" = "windows" ]; then
-    OUT="$OUT.exe"
+    EXT=".exe"
   fi
 
-  echo "🔨 Building $OS/$ARCH → $OUT"
+  BUILD_DIR="$DIST_DIR/$APP_NAME-$VERSION-$OS-$ARCH"
+  mkdir -p "$BUILD_DIR"
+
+  echo "🔨 Building $OS/$ARCH"
 
   GOOS=$OS GOARCH=$ARCH \
-    go build -o "$OUT" ./cmd/doclific
+    go build -o "$BUILD_DIR/$BIN_NAME$EXT" ./cmd/doclific
+
+  # ----------------------------
+  # Archive
+  # ----------------------------
+  ARCHIVE_NAME="$APP_NAME-$VERSION-$OS-$ARCH"
+
+  if [ "$OS" = "windows" ]; then
+    (cd "$DIST_DIR" && zip -r "$ARCHIVE_NAME.zip" "$(basename "$BUILD_DIR")")
+  else
+    (cd "$DIST_DIR" && tar -czf "$ARCHIVE_NAME.tar.gz" "$(basename "$BUILD_DIR")")
+  fi
+
+  rm -rf "$BUILD_DIR"
 done
 
-echo "✅ Release artifacts created:"
-ls -lh dist/
+# ----------------------------
+# Generate checksums
+# ----------------------------
+echo "🔐 Generating checksums"
+cd "$DIST_DIR"
+shasum -a 256 * > checksums.txt
+cd ..
+
+echo "✅ Release artifacts:"
+ls -lh "$DIST_DIR"
