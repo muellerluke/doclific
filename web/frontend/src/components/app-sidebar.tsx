@@ -15,7 +15,6 @@ import {
     SidebarMenuSubItem,
     SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
-import { orpcTs } from "@/lib/orpc"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState, useRef, useEffect } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu"
@@ -48,6 +47,8 @@ import {
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { createDoc, deleteDoc, getDocs } from "@/api/docs";
+import { getRepoInfo } from "@/api/git";
 
 function CreateDocDialog({
     parentPath,
@@ -88,9 +89,9 @@ function CreateDocDialog({
     }, [showIconPicker])
 
     const createDocMutation = useMutation({
-        ...orpcTs.docs.createDoc.mutationOptions(),
+        mutationFn: createDoc,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: orpcTs.docs.getDocs.queryKey() })
+            queryClient.invalidateQueries({ queryKey: ["docs", "get-docs"] })
             setOpen(false)
             setTitle("")
             setSelectedIcon("")
@@ -246,17 +247,17 @@ function DeleteDocDialog({
     const queryClient = useQueryClient()
     const navigate = useNavigate()
     const deleteDocMutation = useMutation({
-        ...orpcTs.docs.deleteDoc.mutationOptions(),
+        mutationFn: deleteDoc,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: orpcTs.docs.getDocs.queryKey() })
+            queryClient.invalidateQueries({ queryKey: ["docs", "get-docs"] })
             setOpen(false)
             toast.success("Document deleted successfully")
 
             // wait 250ms before navigating to an existing document
             setTimeout(() => {
-                const existingDoc = queryClient.getQueryData(orpcTs.docs.getDocs.queryKey())
+                const existingDoc = queryClient.getQueryData<FolderStructure[]>(["docs", "get-docs"])
                 if (existingDoc && existingDoc.length > 0) {
-                    navigate(`/${existingDoc[0].name}`)
+                    navigate(`/${existingDoc[0].name ?? ""}`)
                 }
             }, 250)
         },
@@ -276,7 +277,7 @@ function DeleteDocDialog({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteDocMutation.mutate({ filePath: fullPath })}>Delete</AlertDialogAction>
+                    <AlertDialogAction onClick={() => deleteDocMutation.mutate(fullPath)}>Delete</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -286,12 +287,14 @@ function DeleteDocDialog({
 export function AppSidebar() {
     const navigate = useNavigate()
     const sidebarData = useQuery({
-        ...orpcTs.git.getRepoInfo.queryOptions(),
+        queryKey: ["git", "repo-info"],
+        queryFn: getRepoInfo,
         enabled: true,
     })
     const { isMobile } = useSidebar()
     const docsQuery = useQuery({
-        ...orpcTs.docs.getDocs.queryOptions(),
+        queryKey: ["docs", "get-docs"],
+        queryFn: getDocs,
         enabled: true,
     })
 

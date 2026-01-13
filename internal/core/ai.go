@@ -15,20 +15,28 @@ import (
 	"doclific/internal/config"
 )
 
-const agentInstruction = `You are a structured documentation generator. 
-Generate a rich-text document as an array of objects based on the user's request.
+func getRichTextInstruction() string {
+	flatFileList, err := GetFlatFileList("", nil, "", nil)
+	if err != nil {
+		return ""
+	}
 
-For each object in the array, follow these strict rules:
-1. If "nodeType" is "text":
-   - Set "type" to "p", "h1", "h2", or "h3".
-   - Set "text" to the content string.
-2. If "nodeType" is "list":
-   - Set "type" to "numbered" or "bulleted".
-   - Set "items" to an array of strings.
-3. If "nodeType" is "codebase snippet":
-   - Provide "filePath", "lineStart", and "lineEnd".
+	projectStructure := ""
+	for _, filePath := range flatFileList {
+		projectStructure += fmt.Sprintf("- %s\n", filePath)
+	}
 
-CRITICAL: Output ONLY the raw JSON array. No markdown code fences (like ` + "```json" + `), no backticks, and no introductory text. The first character must be '[' and the last must be ']'.`
+	return fmt.Sprintf(`
+When writing documentation:
+1. Explain concepts using "text" nodes
+2. Reference implementation using "codebase snippet" nodes
+3. Use "list" nodes only for summaries
+
+If you need to show code, DO NOT paste it — reference it.
+
+The project structure is: %s
+`, projectStructure)
+}
 
 var richTextJSONSchema = `
 {
@@ -36,27 +44,39 @@ var richTextJSONSchema = `
   "items": {
     "type": "object",
     "properties": {
-      "nodeType": { 
-        "type": "string", 
-        "enum": ["text", "codebase snippet", "list"],
-        "description": "The type of content node"
-      },
-      "type": { 
-        "type": "string", 
-        "enum": ["p", "h1", "h2", "h3", "numbered", "bulleted"],
-        "description": "Sub-type for text or list nodes"
-      },
-      "text": { "type": "string", "description": "The actual text content" },
-      "filePath": { "type": "string", "description": "Path to the file for code snippets" },
-      "lineStart": { "type": "integer" },
-      "lineEnd": { "type": "integer" },
-      "items": { 
-        "type": "array", 
-        "items": { "type": "string" },
-        "description": "Array of strings for list nodes"
-      }
+      "nodeType": { "type": "string", "enum": ["text", "codebase snippet", "list"] }
     },
-    "required": ["nodeType"]
+    "required": ["nodeType"],
+    "anyOf": [
+      {
+        "type": "object",
+        "properties": {
+          "nodeType": { "const": "text" },
+          "type": { "type": "string", "enum": ["p", "h1", "h2", "h3"] },
+          "text": { "type": "string" }
+        },
+        "required": ["type", "text"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "nodeType": { "const": "codebase snippet" },
+          "filePath": { "type": "string" },
+          "lineStart": { "type": "integer" },
+          "lineEnd": { "type": "integer" }
+        },
+        "required": ["filePath", "lineStart", "lineEnd"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "nodeType": { "const": "list" },
+          "type": { "type": "string", "enum": ["numbered", "bulleted"] },
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["type", "items"]
+      }
+    ]
   }
 }`
 
@@ -87,8 +107,8 @@ func GenerateRichText() ([]any, error) {
     richTextAgent, err := llmagent.New(llmagent.Config{
         Name:        "rich_text_agent",
         Model:       model,
-        Description: "Pick something to document and document it.",
-        Instruction: agentInstruction,
+        Description: "You are a helpful assistant that writes articles in rich text format.",
+        Instruction: "",
         OutputSchema: getRichTextSchema(),
 		OutputKey:    "rich_text",
     })

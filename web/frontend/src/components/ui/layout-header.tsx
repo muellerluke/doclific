@@ -1,7 +1,8 @@
-import { orpcTs } from "@/lib/orpc"
+
 import { useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
 import type { FolderStructure } from "@/types/docs"
+import { getDocs } from "@/api/docs"
 
 export function LayoutHeader() {
     // get the current path
@@ -11,7 +12,8 @@ export function LayoutHeader() {
 
     // get docs query
     const docsQuery = useQuery({
-        ...orpcTs.docs.getDocs.queryOptions(),
+        queryKey: ["docs", "get-docs"],
+        queryFn: getDocs,
         enabled: true,
     })
 

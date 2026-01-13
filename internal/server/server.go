@@ -30,9 +30,27 @@ func StartServer(port int) error {
 	// Register all API routes
 	RegisterRoutes(mux)
 
-	// Serve static files
+	// Serve static files with catch-all for SPA routing
 	fs := http.FileServer(http.Dir(buildDir))
-	mux.Handle("/", fs)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Don't interfere with API routes
+		if r.URL.Path == "/api" || len(r.URL.Path) > 4 && r.URL.Path[:4] == "/api" {
+			http.NotFound(w, r)
+			return
+		}
+
+		// Check if the requested file exists
+		filePath := filepath.Join(buildDir, r.URL.Path)
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			// File doesn't exist, serve index.html for SPA routing
+			indexPath := filepath.Join(buildDir, "index.html")
+			http.ServeFile(w, r, indexPath)
+			return
+		}
+
+		// File exists, serve it
+		fs.ServeHTTP(w, r)
+	})
 
 	addr := fmt.Sprintf(":%d", port)
 	url := fmt.Sprintf("http://localhost%s", addr)

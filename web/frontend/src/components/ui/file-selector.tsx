@@ -3,7 +3,7 @@ import { ChevronRight, ChevronDown, File, Folder, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { orpcTs } from "@/lib/orpc";
+import { getFolderContents, getFileContents } from '@/api/codebase';
 
 interface FileNode {
     name: string;
@@ -41,9 +41,8 @@ export function FileSelector({
     const [folderContents, setFolderContents] = useState<Map<string, FileNode[]>>(new Map());
 
     const rootFolderQuery = useQuery({
-        ...orpcTs.codebase.getFolderContents.queryOptions({
-            input: { filePath: "" },
-        }),
+        queryKey: ["codebase", "get-folder-contents", ""],
+        queryFn: () => getFolderContents(""),
         enabled: open,
     });
 
@@ -57,9 +56,8 @@ export function FileSelector({
     }, [folderContents, rootFolderQuery.data]);
 
     const fileContentQuery = useQuery({
-        ...orpcTs.codebase.getFileContents.queryOptions({
-            input: { filePath: selectedFile },
-        }),
+        queryKey: ["codebase", "get-file-contents", selectedFile],
+        queryFn: () => getFileContents(selectedFile || ''),
         enabled: open && !!selectedFile,
     });
 
@@ -81,11 +79,10 @@ export function FileSelector({
             // Fetch folder contents if not already loaded
             if (!folderContents.has(path)) {
                 try {
-                    const data = await queryClient.fetchQuery(
-                        orpcTs.codebase.getFolderContents.queryOptions({
-                            input: { filePath: path },
-                        })
-                    );
+                    const data = await queryClient.fetchQuery({
+                        queryKey: ["codebase", "get-folder-contents", path],
+                        queryFn: () => getFolderContents(path),
+                    });
                     setFolderContents((prev) => {
                         const newMap = new Map(prev);
                         newMap.set(path, data || []);

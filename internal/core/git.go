@@ -7,7 +7,7 @@ import (
 
 // get repo name via git
 func GetRepoName() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd := exec.Command("sh", "-c", "git config --get remote.origin.url | sed -E \"s|.*/(.+)\\.git|\\\\1|\"")
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err

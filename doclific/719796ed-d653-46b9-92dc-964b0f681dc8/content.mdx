@@ -4,11 +4,15 @@
 
 The application employs a dual-layered routing system: a Next.js App Router for frontend navigation and an oRPC-based schema for backend API procedures. This architecture ensures type safety across the network boundary while leveraging standard web routing for the user interface.
 
+​
+
+​
+
 ## Backend Routing (oRPC)
 
 The backend does not use traditional RESTful path-based routing in the way Express or Fastify might. Instead, it defines a hierarchical 'Router' object where each key represents a procedure or a nested namespace. This router is then served via an RPCHandler from the @orpc/server package.
 
-<CodebaseSnippet filePath="packages/backend/src/router.ts" lineStart="23" lineEnd="51">
+<CodebaseSnippet filePath="cmd/doclific/main.go" lineStart="1" lineEnd="50">
 
 </CodebaseSnippet>
 
@@ -33,10 +37,6 @@ The 'platform' application manages the admin dashboard and uses nested layouts f
 * /account/content: Interface for managing services and site content.
 
 The Platform uses a layout to provide consistent navigation and dynamically determines the page title based on the current pathname.
-
-<CodebaseSnippet filePath="packages/platform/app/account/layout.tsx" lineStart="10" lineEnd="29">
-
-</CodebaseSnippet>
 
 ### Website App
 

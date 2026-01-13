@@ -1,30 +1,25 @@
-import { orpcTs } from "@/lib/orpc"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
 import RichTextEditor from "@/components/editor-container";
+import { getDoc, updateDoc } from "@/api/docs";
 
 export default function RTE() {
 
     const { pathname } = useLocation()
     const filePath = pathname.slice(1)
     const docQuery = useQuery({
-        ...orpcTs.docs.getDoc.queryOptions({
-            input: {
-                filePath,
-            },
-        }),
+        queryKey: ["docs", "get-doc", filePath],
+        queryFn: () => getDoc(filePath),
         enabled: true,
     })
 
-    const updateDoc = useMutation({
-        ...orpcTs.docs.updateDoc.mutationOptions(),
+    const updateDocMutation = useMutation({
+        mutationKey: ["docs", "update-doc", filePath],
+        mutationFn: (content: string) => updateDoc(filePath, content),
     })
 
     const onUpdate = (content: string) => {
-        updateDoc.mutate({
-            filePath,
-            content,
-        })
+        updateDocMutation.mutate(content)
     }
 
     return (

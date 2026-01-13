@@ -160,11 +160,7 @@ func handleDocsDeleteDoc(w http.ResponseWriter, r *http.Request) {
 
 func handleCodebaseGetFolderContents(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Query().Get("filePath")
-	if filePath == "" {
-		http.Error(w, "filePath query parameter is required", http.StatusBadRequest)
-		return
-	}
-
+	
 	contents, err := core.GetFolderContents(filePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

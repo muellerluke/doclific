@@ -5,9 +5,9 @@ import {
 } from 'platejs';
 import { Sparkle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { orpc } from '@/lib/orpc';
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from './spinner';
+import { generateRichText } from '@/api/ai';
 
 export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>) {
     const editor = useEditorRef();
@@ -33,7 +33,7 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
         editor.setOption(CustomAIPlugin, 'status', 'thinking');
 
         try {
-            const nodes = await orpc.ai.generateRichText({ prompt: promptValue.trim() });
+            const nodes = await generateRichText({ prompt: promptValue.trim() });
 
             // Get the current block path where cursor is
             const currentBlock = editor.api.block();

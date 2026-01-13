@@ -1,7 +1,6 @@
 import type { PlateElementProps } from 'platejs/react';
 import type { CodebaseSnippetElementType } from '@/components/editor/plugins/codebase-kit';
 import { useQuery } from '@tanstack/react-query';
-import { orpcTs } from '@/lib/orpc';
 import { createHighlighter, type Highlighter } from 'shiki';
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/components/theme-provider';
@@ -9,6 +8,7 @@ import { Copy, Settings } from 'lucide-react';
 import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
+import { getFileContents } from '@/api/codebase';
 
 // Singleton highlighter cache
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -42,12 +42,8 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     const [fileSelectorOpen, setFileSelectorOpen] = useState(false);
 
     const fileContents = useQuery({
-        ...orpcTs.codebase.getFileContents.queryOptions({
-            input: {
-                filePath: element.filePath || '',
-            },
-
-        }),
+        queryKey: ["codebase", "get-file-contents", element.filePath],
+        queryFn: () => getFileContents(element.filePath || ''),
         enabled: !!element.filePath,
     })
 
