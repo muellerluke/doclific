@@ -131,6 +131,29 @@ else
   mv "$BINARY_PATH" "$INSTALL_DIR/$BIN_NAME"
 fi
 
+# Install build directory if it exists
+BUILD_DIR_PATH=""
+if [ -d "build" ]; then
+  BUILD_DIR_PATH="build"
+elif [ -d "web/build" ]; then
+  BUILD_DIR_PATH="web/build"
+else
+  # Look for build directory in extracted subdirectory
+  BUILD_DIR_PATH="$(find . -type d -name "build" -not -path "*/.*" | head -n 1)"
+fi
+
+if [ -n "$BUILD_DIR_PATH" ] && [ -d "$BUILD_DIR_PATH" ]; then
+  info "Installing frontend build files..."
+  BUILD_TARGET_DIR="$INSTALL_DIR/build"
+  if [ "$INSTALL_DIR" = "$INSTALL_DIR_DEFAULT" ]; then
+    sudo rm -rf "$BUILD_TARGET_DIR"
+    sudo cp -r "$BUILD_DIR_PATH" "$BUILD_TARGET_DIR"
+  else
+    rm -rf "$BUILD_TARGET_DIR"
+    cp -r "$BUILD_DIR_PATH" "$BUILD_TARGET_DIR"
+  fi
+fi
+
 # -----------------------------
 # PATH check
 # -----------------------------

@@ -53,6 +53,10 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   GOOS=$OS GOARCH=$ARCH \
     go build -o "$BUILD_DIR/$BIN_NAME$EXT" ./cmd/doclific
 
+  # Copy frontend build files
+  echo "📦 Copying frontend build files..."
+  cp -r web/build "$BUILD_DIR/build"
+
   # ----------------------------
   # Archive
   # ----------------------------
