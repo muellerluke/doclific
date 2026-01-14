@@ -53,9 +53,8 @@ info "Installing $BIN_NAME $VERSION for $OS/$ARCH"
 # -----------------------------
 # URLs
 # -----------------------------
-FILE="$BIN_NAME-$VERSION-$OS-$ARCH.tar.gz"
+ARCHIVE="$BIN_NAME-$VERSION-$OS-$ARCH.tar.gz"
 CHECKSUM_FILE="checksums.txt"
-
 BASE_URL="https://github.com/$REPO/releases/download/$VERSION"
 
 TMP_DIR="$(mktemp -d)"
@@ -64,8 +63,8 @@ cd "$TMP_DIR"
 # -----------------------------
 # Download
 # -----------------------------
-info "Downloading binary..."
-curl -fsSLO "$BASE_URL/$FILE"
+info "Downloading binary archive..."
+curl -fsSLO "$BASE_URL/$ARCHIVE"
 
 info "Downloading checksums..."
 curl -fsSLO "$BASE_URL/$CHECKSUM_FILE"
@@ -85,9 +84,20 @@ else
 fi
 
 # Run checksum verification
-grep "$FILE" "$CHECKSUM_FILE" | $CHECKSUM_CMD || err "Checksum verification failed"
+grep "$ARCHIVE" "$CHECKSUM_FILE" | $CHECKSUM_CMD || err "Checksum verification failed"
 
-chmod +x "$FILE"
+# -----------------------------
+# Extract archive
+# -----------------------------
+info "Extracting binary..."
+tar -xzf "$ARCHIVE"
+
+# Ensure extracted binary exists
+if [ ! -f "$BIN_NAME" ]; then
+  err "Extracted binary '$BIN_NAME' not found"
+fi
+
+chmod +x "$BIN_NAME"
 
 # -----------------------------
 # Install location
@@ -103,9 +113,9 @@ fi
 # -----------------------------
 info "Installing to $INSTALL_DIR"
 if [ "$INSTALL_DIR" = "$INSTALL_DIR_DEFAULT" ]; then
-  sudo mv "$FILE" "$INSTALL_DIR/$BIN_NAME"
+  sudo mv "$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
 else
-  mv "$FILE" "$INSTALL_DIR/$BIN_NAME"
+  mv "$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
 fi
 
 # -----------------------------
@@ -118,6 +128,11 @@ if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
   echo ""
   echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
 fi
+
+# -----------------------------
+# Cleanup
+# -----------------------------
+rm -f "$ARCHIVE" "$CHECKSUM_FILE"
 
 echo ""
 info "✅ $BIN_NAME installed successfully!"
