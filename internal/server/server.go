@@ -15,16 +15,10 @@ import (
 func StartServer(port int) error {
 	mux := http.NewServeMux()
 
-	// Get the project root directory
-	projectRoot, err := getProjectRoot()
+	// Find the build directory relative to the executable
+	buildDir, err := findBuildDir()
 	if err != nil {
-		return fmt.Errorf("failed to get project root: %w", err)
-	}
-
-	// Serve static files from web/build directory
-	buildDir := filepath.Join(projectRoot, "web", "build")
-	if _, err := os.Stat(buildDir); os.IsNotExist(err) {
-		return fmt.Errorf("build directory not found: %s. Please build the frontend first", buildDir)
+		return fmt.Errorf("failed to find build directory: %w", err)
 	}
 
 	// Register all API routes
@@ -93,6 +87,56 @@ func openBrowser(url string) error {
 		cmd = exec.Command("xdg-open", url)
 	}
 	return cmd.Start()
+}
+
+// findBuildDir finds the web/build directory using multiple strategies
+func findBuildDir() (string, error) {
+	// Strategy 1: Look relative to the executable
+	execPath, err := os.Executable()
+	if err == nil {
+		execDir := filepath.Dir(execPath)
+		// Try: executable_dir/web/build
+		buildDir := filepath.Join(execDir, "web", "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+		// Try: executable_dir/build (if web/build is copied to build)
+		buildDir = filepath.Join(execDir, "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+		// Try: parent of executable_dir/web/build (if executable is in cmd/)
+		buildDir = filepath.Join(filepath.Dir(execDir), "web", "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+	}
+
+	// Strategy 2: Look in current working directory
+	cwd, err := os.Getwd()
+	if err == nil {
+		// Try: cwd/web/build
+		buildDir := filepath.Join(cwd, "web", "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+		// Try: cwd/build
+		buildDir = filepath.Join(cwd, "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+	}
+
+	// Strategy 3: Look for project root (for development)
+	projectRoot, err := getProjectRoot()
+	if err == nil {
+		buildDir := filepath.Join(projectRoot, "web", "build")
+		if _, err := os.Stat(buildDir); err == nil {
+			return buildDir, nil
+		}
+	}
+
+	return "", fmt.Errorf("build directory not found. Tried: executable_dir/web/build, executable_dir/build, cwd/web/build, cwd/build, project_root/web/build")
 }
 
 // getProjectRoot finds the project root directory by looking for go.mod
