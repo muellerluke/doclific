@@ -92,12 +92,25 @@ grep "$ARCHIVE" "$CHECKSUM_FILE" | $CHECKSUM_CMD || err "Checksum verification f
 info "Extracting binary..."
 tar -xzf "$ARCHIVE"
 
+# Find the binary (it might be in a subdirectory)
+BINARY_PATH=""
+if [ -f "$BIN_NAME" ]; then
+  # Binary is in current directory
+  BINARY_PATH="$BIN_NAME"
+else
+  # Binary is in a subdirectory (e.g., doclific-v1.0.0-linux-amd64/doclific)
+  BINARY_PATH="$(find . -name "$BIN_NAME" -type f | head -n 1)"
+  if [ -z "$BINARY_PATH" ]; then
+    err "Extracted binary '$BIN_NAME' not found"
+  fi
+fi
+
 # Ensure extracted binary exists
-if [ ! -f "$BIN_NAME" ]; then
+if [ ! -f "$BINARY_PATH" ]; then
   err "Extracted binary '$BIN_NAME' not found"
 fi
 
-chmod +x "$BIN_NAME"
+chmod +x "$BINARY_PATH"
 
 # -----------------------------
 # Install location
@@ -113,9 +126,9 @@ fi
 # -----------------------------
 info "Installing to $INSTALL_DIR"
 if [ "$INSTALL_DIR" = "$INSTALL_DIR_DEFAULT" ]; then
-  sudo mv "$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
+  sudo mv "$BINARY_PATH" "$INSTALL_DIR/$BIN_NAME"
 else
-  mv "$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
+  mv "$BINARY_PATH" "$INSTALL_DIR/$BIN_NAME"
 fi
 
 # -----------------------------
@@ -133,6 +146,8 @@ fi
 # Cleanup
 # -----------------------------
 rm -f "$ARCHIVE" "$CHECKSUM_FILE"
+# Remove any extracted directories (but not the binary we just moved)
+find . -maxdepth 1 -type d -name "$BIN_NAME-*" -exec rm -rf {} + 2>/dev/null || true
 
 echo ""
 info "✅ $BIN_NAME installed successfully!"
