@@ -65,9 +65,11 @@ cd "$TMP_DIR"
 # Download
 # -----------------------------
 info "Downloading binary..."
+info "URL: $BASE_URL/$FILE"
 curl -fsSLO "$BASE_URL/$FILE"
 
 info "Downloading checksums..."
+info "URL: $BASE_URL/$CHECKSUM_FILE"
 curl -fsSLO "$BASE_URL/$CHECKSUM_FILE"
 
 # -----------------------------
