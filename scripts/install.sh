@@ -53,10 +53,10 @@ info "Installing $BIN_NAME $VERSION for $OS/$ARCH"
 # -----------------------------
 # URLs
 # -----------------------------
-FILE="$BIN_NAME-$OS-$ARCH"
+FILE="$BIN_NAME-$VERSION-$OS-$ARCH.tar.gz"
 CHECKSUM_FILE="checksums.txt"
 
-BASE_URL="https://github.com/$REPO/releases/$VERSION/download"
+BASE_URL="https://github.com/$REPO/releases/download/$VERSION"
 
 TMP_DIR="$(mktemp -d)"
 cd "$TMP_DIR"
@@ -65,11 +65,9 @@ cd "$TMP_DIR"
 # Download
 # -----------------------------
 info "Downloading binary..."
-info "URL: $BASE_URL/$FILE"
 curl -fsSLO "$BASE_URL/$FILE"
 
 info "Downloading checksums..."
-info "URL: $BASE_URL/$CHECKSUM_FILE"
 curl -fsSLO "$BASE_URL/$CHECKSUM_FILE"
 
 # -----------------------------
