@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"doclific/internal/config"
+	"doclific/internal/core"
 	"doclific/internal/server"
 
 	"github.com/spf13/cobra"
@@ -32,7 +33,10 @@ var initCmd = &cobra.Command{
 		// TODO: Call initProject() function here
 		fmt.Println("🚀 Initializing Doclific project...")
 		fmt.Println("   This will create a 'doclific' directory in the current folder.")
-		fmt.Println("   ⚠️  Not yet implemented")
+		if err := core.CreateDoclificFolder(); err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -91,7 +95,7 @@ var versionCmd = &cobra.Command{
 	Short: "Show the version",
 	Long:  `Show the version of the Doclific CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Doclific CLI v0.1.0")
+		fmt.Println("Doclific CLI v1.0.0")
 	},
 }
 

@@ -17,6 +17,16 @@ type FileNode struct {
 	Children []FileNode  `json:"children,omitempty"`
 }
 
+// Create the doclific folder
+func CreateDoclificFolder() error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	doclificFolder := filepath.Join(cwd, "doclific")
+	return os.MkdirAll(doclificFolder, 0755)
+}
+
 // GetFolderContents gets all contents of a folder given a filePath
 func GetFolderContents(filePath string) ([]FileNode, error) {
 	cwd, err := os.Getwd()
