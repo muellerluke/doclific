@@ -74,8 +74,18 @@ curl -fsSLO "$BASE_URL/$CHECKSUM_FILE"
 # Verify checksum
 # -----------------------------
 info "Verifying checksum..."
-grep "$FILE" "$CHECKSUM_FILE" | sha256sum -c - \
-  || err "Checksum verification failed"
+
+# Determine command
+if command -v sha256sum >/dev/null 2>&1; then
+    CHECKSUM_CMD="sha256sum -c -"
+elif command -v shasum >/dev/null 2>&1; then
+    CHECKSUM_CMD="shasum -a 256 -c -"
+else
+    err "No SHA256 checksum tool found. Please install sha256sum or shasum."
+fi
+
+# Run checksum verification
+grep "$FILE" "$CHECKSUM_FILE" | $CHECKSUM_CMD || err "Checksum verification failed"
 
 chmod +x "$FILE"
 
