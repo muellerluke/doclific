@@ -56,7 +56,7 @@ info "Installing $BIN_NAME $VERSION for $OS/$ARCH"
 FILE="$BIN_NAME-$OS-$ARCH"
 CHECKSUM_FILE="checksums.txt"
 
-BASE_URL="https://github.com/$REPO/releases/download/$VERSION"
+BASE_URL="https://github.com/$REPO/releases/$VERSION/download"
 
 TMP_DIR="$(mktemp -d)"
 cd "$TMP_DIR"
