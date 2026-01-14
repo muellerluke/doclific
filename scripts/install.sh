@@ -172,6 +172,5 @@ rm -f "$ARCHIVE" "$CHECKSUM_FILE"
 # Remove any extracted directories (but not the binary we just moved)
 find . -maxdepth 1 -type d -name "$BIN_NAME-*" -exec rm -rf {} + 2>/dev/null || true
 
-echo ""
 info "✅ $BIN_NAME installed successfully!"
 info "Run: $BIN_NAME --help"

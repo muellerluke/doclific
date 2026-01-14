@@ -95,7 +95,42 @@ var versionCmd = &cobra.Command{
 	Short: "Show the version",
 	Long:  `Show the version of the Doclific CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Doclific CLI v1.0.0")
+		version, err := core.GetCurrentVersion()
+		if err != nil {
+			fmt.Printf("Doclific CLI version: unknown (error: %v)\n", err)
+		} else {
+			fmt.Printf("Doclific CLI %s\n", version)
+		}
+	},
+}
+
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Check for updates and install the latest version",
+	Long:  `Check if a newer version is available and install it if found.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("🔍 Checking for updates...")
+
+		isLatest, current, latest, err := core.IsLatestVersion()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error checking version: %v\n", err)
+			os.Exit(1)
+		}
+
+		if isLatest {
+			fmt.Printf("✅ You are on the latest version: %s\n", current)
+			return
+		}
+
+		fmt.Printf("📦 Update available: %s -> %s\n", current, latest)
+		fmt.Println("🚀 Installing latest version...")
+
+		if err := core.InstallLatestVersion(); err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error installing update: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("✅ Successfully updated to %s!\n", latest)
 	},
 }
 
@@ -106,6 +141,7 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(setCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(updateCmd)
 }
 
 // maskAPIKey masks an API key for display (shows first 4 and last 4 characters)
@@ -117,6 +153,25 @@ func maskAPIKey(key string) string {
 }
 
 func main() {
+	// Automatically check for updates before running any command
+	// Skip update check for the update command itself to avoid recursion
+	if len(os.Args) > 1 && os.Args[1] != "update" {
+		isLatest, current, latest, err := core.IsLatestVersion()
+		if err == nil && !isLatest {
+			fmt.Fprintf(os.Stderr, "📦 Update available: %s -> %s\n", current, latest)
+			fmt.Fprintf(os.Stderr, "🚀 Updating automatically...\n")
+			if err := core.InstallLatestVersion(); err != nil {
+				fmt.Fprintf(os.Stderr, "⚠️  Failed to auto-update: %v\n", err)
+				fmt.Fprintf(os.Stderr, "   Run 'doclific update' manually to update.\n")
+				// Continue with the command even if update fails
+			} else {
+				fmt.Fprintf(os.Stderr, "✅ Successfully updated to %s!\n", latest)
+				fmt.Fprintf(os.Stderr, "   Please restart the command to use the new version.\n")
+				os.Exit(0)
+			}
+		}
+	}
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 		os.Exit(1)
