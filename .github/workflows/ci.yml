@@ -1,0 +1,42 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - '*'
+    pull_request:
+        branches:
+            - main
+            - master
+
+jobs:
+    test:
+        name: Run Tests
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                go-version: ['1.25']
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: ${{ matrix.go-version }}
+                  cache-dependency-path: go.sum
+
+            - name: Download dependencies
+              run: go mod download
+
+            - name: Run tests
+              run: go test -v -coverprofile=coverage.out ./...
+
+            - name: Upload coverage reports
+              uses: codecov/codecov-action@v4
+              if: matrix.go-version == '1.25'
+              with:
+                  file: ./coverage.out
+                  fail_ci_if_error: false

@@ -52,7 +52,7 @@ var getCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		if value == "" {
 			fmt.Printf("📋 %s: (not set)\n", key)
 		} else {
@@ -79,13 +79,13 @@ var setCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		// Mask API keys for security
 		displayValue := value
 		if key == "OPENAI_API_KEY" || key == "ANTHROPIC_API_KEY" || key == "GOOGLE_API_KEY" {
 			displayValue = maskAPIKey(value)
 		}
-		
+
 		fmt.Printf("✅ Successfully set %s to %s\n", key, displayValue)
 	},
 }
@@ -155,26 +155,17 @@ func maskAPIKey(key string) string {
 func main() {
 	// Automatically check for updates before running any command
 	// Skip update check for the update command itself to avoid recursion
-	if len(os.Args) > 1 && os.Args[1] != "update" {
-		isLatest, current, latest, err := core.IsLatestVersion()
-		if err == nil && !isLatest {
-			fmt.Fprintf(os.Stderr, "📦 Update available: %s -> %s\n", current, latest)
-			fmt.Fprintf(os.Stderr, "🚀 Updating automatically...\n")
-			if err := core.InstallLatestVersion(); err != nil {
-				fmt.Fprintf(os.Stderr, "⚠️  Failed to auto-update: %v\n", err)
-				fmt.Fprintf(os.Stderr, "   Run 'doclific update' manually to update.\n")
-				// Continue with the command even if update fails
-			} else {
-				fmt.Fprintf(os.Stderr, "✅ Successfully updated to %s!\n", latest)
-				fmt.Fprintf(os.Stderr, "   Please restart the command to use the new version.\n")
-				os.Exit(0)
+	go func() {
+		if (len(os.Args) > 1 && os.Args[1] != "update") || len(os.Args) == 1 {
+			isLatest, current, latest, err := core.IsLatestVersion()
+			if err == nil && !isLatest {
+				fmt.Fprintf(os.Stderr, "📦 Update available: %s -> %s\n", current, latest)
 			}
 		}
-	}
+	}()
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 		os.Exit(1)
 	}
 }
-
