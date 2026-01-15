@@ -212,7 +212,7 @@ func handleAIGenerateRichText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	richText, err := core.GenerateRichText()
+	richText, err := core.GenerateRichText(req.Prompt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

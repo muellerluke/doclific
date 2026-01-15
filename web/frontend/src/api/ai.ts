@@ -9,7 +9,7 @@ export interface GenerateRichTextRequest {
 }
 
 export interface RichTextNode {
-	nodeType: 'text' | 'codebase snippet' | 'list';
+	nodeType: 'text' | 'codebase_snippet' | 'list';
 	type?: 'p' | 'h1' | 'h2' | 'h3' | 'numbered' | 'bulleted';
 	text?: string;
 	filePath?: string;
@@ -22,7 +22,7 @@ export interface RichTextNode {
  * Transform RichTextNode array from API to Plate.js format
  */
 function transformRichTextNodes(nodes: RichTextNode[]): any[] {
-	return nodes.map((node) => {
+	return nodes.flatMap((node): any[] => {
 		switch (node.nodeType) {
 			case 'text':
 				return [
@@ -31,7 +31,8 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						children: [{ text: node.text || '' }],
 					},
 				];
-			case 'codebase snippet':
+
+			case 'codebase_snippet':
 				return [
 					{
 						type: 'CodebaseSnippet',
@@ -77,5 +78,8 @@ export async function generateRichText(request: GenerateRichTextRequest): Promis
 	}
 
 	const nodes: RichTextNode[] = await response.json();
-	return transformRichTextNodes(nodes);
+
+	const transformedNodes = transformRichTextNodes(nodes);
+
+	return transformedNodes;
 }

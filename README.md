@@ -5,7 +5,7 @@
 ## Features
 
 -   📝 **Notion-like Editor**: Rich text editing experience with support for headings, lists, code blocks, and more
--   🤖 **AI-Powered Documentation**: Generate documentation using AI with support for multiple providers (OpenAI, Anthropic, Google)
+-   🤖 **AI-Powered Documentation**: Generate documentation using AI (currently supports Google, with more providers coming soon)
 -   📁 **Codebase Integration**: Reference code snippets directly from your repository
 -   🔍 **Smart Navigation**: Organized folder structure for easy documentation management
 -   ⚡ **Fast & Local**: Runs entirely on your machine - no external services required
@@ -67,11 +67,11 @@ doclific get GOOGLE_API_KEY
 **Available keys:**
 
 -   `DEEPLINK_PREFIX` - Prefix for deep linking
--   `AI_PROVIDER` - AI provider to use (`openai`, `anthropic`, or `google`)
--   `AI_MODEL` - AI model name
--   `OPENAI_API_KEY` - OpenAI API key
--   `ANTHROPIC_API_KEY` - Anthropic API key
--   `GOOGLE_API_KEY` - Google API key
+-   `AI_PROVIDER` - AI provider to use (currently only `google` is supported, defaults to `google`)
+-   `AI_MODEL` - AI model name (optional, defaults to `gemini-3-flash-preview`)
+-   `GOOGLE_API_KEY` - Google API key (required for AI features)
+-   `OPENAI_API_KEY` - OpenAI API key (reserved for future support)
+-   `ANTHROPIC_API_KEY` - Anthropic API key (reserved for future support)
 
 API keys are automatically masked when displayed for security.
 
@@ -108,24 +108,22 @@ Doclific stores configuration in `~/.config/doclific/config.json`. You can manag
 
 ### Setting up AI
 
-To use AI-powered documentation generation, configure your AI provider:
+**Current Status**: Doclific currently supports Google's Gemini AI models. Support for OpenAI and Anthropic is planned for future releases.
+
+To use AI-powered documentation generation, configure Google AI:
 
 ```bash
-# Set the provider
-doclific set AI_PROVIDER google
-
-# Set your API key
+# Set your Google API key (required)
 doclific set GOOGLE_API_KEY your-api-key-here
 
-# Set the model (optional)
+# The provider defaults to "google", but you can explicitly set it:
+doclific set AI_PROVIDER google
+
+# Set the model (optional, defaults to gemini-3-flash-preview)
 doclific set AI_MODEL gemini-3-flash-preview
 ```
 
-Supported providers:
-
--   **OpenAI**: Set `AI_PROVIDER=openai` and `OPENAI_API_KEY`
--   **Anthropic**: Set `AI_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`
--   **Google**: Set `AI_PROVIDER=google` and `GOOGLE_API_KEY`
+**Future Support**: OpenAI and Anthropic providers will be supported in upcoming releases. The configuration keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) are already available for future use.
 
 ## Usage
 
@@ -177,7 +175,7 @@ You can disable auto-updates by running the `update` command manually when neede
 
 ## Requirements
 
--   Go 1.24+ (for building from source)
+-   Go 1.25+ (for building from source)
 -   Node.js 20+ (for building the frontend)
 -   A modern web browser
 

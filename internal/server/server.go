@@ -11,6 +11,26 @@ import (
 	"time"
 )
 
+// corsMiddleware adds CORS headers to all responses
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Continue with the request
+		next.ServeHTTP(w, r)
+	})
+}
+
 // StartServer starts the HTTP server on the specified port
 func StartServer(port int) error {
 	mux := http.NewServeMux()
@@ -68,7 +88,10 @@ func StartServer(port int) error {
 		}
 	}()
 
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	// Wrap the mux with CORS middleware
+	handler := corsMiddleware(mux)
+
+	if err := http.ListenAndServe(addr, handler); err != nil {
 		return fmt.Errorf("server error: %w", err)
 	}
 
