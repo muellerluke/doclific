@@ -28,6 +28,11 @@ jobs:
                   go-version: ${{ matrix.go-version }}
                   cache-dependency-path: go.sum
 
+            - name: Configure Git
+              run: |
+                  git config --global user.name "CI Test"
+                  git config --global user.email "ci@test.local"
+
             - name: Download dependencies
               run: go mod download
 
