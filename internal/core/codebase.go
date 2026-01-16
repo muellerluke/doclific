@@ -135,7 +135,16 @@ func GetFlatFileList(dir string, fileList []string, baseDir string, ignoreInstan
 		relativePathNormalized := strings.ReplaceAll(relativePath, string(filepath.Separator), "/")
 
 		// Check if path should be ignored
-		if ignoreInstance.MatchesPath(relativePathNormalized) || strings.HasPrefix(relativePathNormalized, ".git") {
+		// For directories, also check with trailing slash to match patterns like "node_modules/"
+		shouldIgnore := ignoreInstance.MatchesPath(relativePathNormalized) ||
+			strings.HasPrefix(relativePathNormalized, ".git")
+		
+		if !shouldIgnore && item.IsDir() {
+			// Check directory pattern with trailing slash
+			shouldIgnore = ignoreInstance.MatchesPath(relativePathNormalized + "/")
+		}
+
+		if shouldIgnore {
 			continue
 		}
 
