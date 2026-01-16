@@ -503,7 +503,9 @@ const calculatePreviewTop = (
 };
 
 const calcDragButtonTop = (editor: PlateEditor, element: TElement): number => {
-  const child = editor.api.toDOMNode(element)!;
+  const child = editor.api.toDOMNode(element);
+
+  if (!child) return 0;
 
   const currentMarginTopString = window.getComputedStyle(child).marginTop;
   const currentMarginTop = Number(currentMarginTopString.replace('px', ''));

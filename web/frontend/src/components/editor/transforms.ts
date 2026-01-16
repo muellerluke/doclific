@@ -105,7 +105,7 @@ export const insertBlock = (
 		} else if (type === ERDType) {
 			editor.tf.insertNodes({
 				type: ERDType,
-				entities: [],
+				tables: [],
 				relationships: [],
 				children: [{ text: '' }],
 			});

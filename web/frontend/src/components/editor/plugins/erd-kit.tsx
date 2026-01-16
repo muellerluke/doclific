@@ -14,7 +14,7 @@ export type DataType =
     | 'json'
     | 'uuid';
 
-export interface Field {
+export interface Column {
     id: string;
     name: string;
     type: DataType;
@@ -23,32 +23,40 @@ export interface Field {
     unique?: boolean;
 }
 
-export interface Entity {
+export interface TableNode {
     id: string;
-    name: string;
+    type: 'tableNode';
+    data: {
+        name: string;
+        columns: Column[];
+        onChange: (nodeId: string, updatedData: TableNode) => void;
+    };
     position: {
         x: number;
         y: number;
     };
-    fields: Field[];
 }
 
 export type Cardinality = '1:1' | '1:N' | 'N:N' | 'N:1';
 
 export interface Relationship {
     id: string;
-    fromEntityId: string;
-    fromFieldId?: string; // FK field (optional early on)
-    toEntityId: string;
-    toFieldId?: string;
+    source: string;
+    sourceHandle: string; // FK field (optional early on)
+    target: string;
+    targetHandle: string;
     cardinality: Cardinality;
-    optional?: boolean;
+    data: {
+        type: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
+    };
+    markerStart: 'claw-left' | 'claw-right';
+    markerEnd: 'claw-left' | 'claw-right';
 }
 
 
 export interface ErdNodeType {
     type: typeof ERDType;
-    entities: Entity[];
+    tables: TableNode[];
     relationships: Relationship[];
     children: [{ text: '' }];
     [key: string]: any;

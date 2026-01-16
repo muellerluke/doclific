@@ -13,10 +13,14 @@ import {
     type EdgeProps,
     EdgeToolbar,
     BaseEdge,
+    applyNodeChanges,
     getSmoothStepPath,
+    type OnNodesChange,
+    type OnEdgesChange,
+    applyEdgeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { memo, useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -30,12 +34,17 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Trash2Icon } from 'lucide-react';
+import { Maximize, Minimize, PlusIcon, Trash2Icon } from 'lucide-react';
+import type { ErdNodeType } from '../editor/plugins/erd-kit';
+import type { PlateElementProps } from 'platejs/react';
+import { useEditorRef } from 'platejs/react';
 
 function CustomEdge(props: EdgeProps) {
     const { selected, sourceHandleId, targetHandleId } = props;
     const [edgePath, centerX, centerY] = getSmoothStepPath(props);
     const { getEdges, setEdges } = useReactFlow();
+
+    console.log(targetHandleId?.endsWith('-l'), sourceHandleId?.endsWith('-l'));
 
     const handleTypeChange = (type: string) => {
         switch (type) {
@@ -43,19 +52,43 @@ function CustomEdge(props: EdgeProps) {
                 setEdges(getEdges().map((edge) => edge.id === props.id ? { ...edge, markerStart: undefined, markerEnd: undefined, data: { type: 'one-to-one' } } : edge));
                 break;
             case 'one-to-many':
-                setEdges(getEdges().map((edge) => edge.id === props.id ? { ...edge, markerStart: undefined, markerEnd: (sourceHandleId?.endsWith('-l') ? 'from-many' : 'to-many'), data: { type: 'one-to-many' } } : edge));
+                setEdges(
+                    getEdges().map((edge) => edge.id === props.id ?
+                        {
+                            ...edge,
+                            markerStart: undefined,
+                            markerEnd: (targetHandleId?.endsWith('-l') ? 'claw-left' : 'claw-right'),
+                            data: { type: 'one-to-many' }
+                        } : edge)
+                );
                 break;
             case 'many-to-one':
-                setEdges(getEdges().map((edge) => edge.id === props.id ? { ...edge, markerStart: (targetHandleId?.endsWith('-l') ? 'from-many' : 'to-many'), markerEnd: undefined, data: { type: 'many-to-one' } } : edge));
+                setEdges(
+                    getEdges().map((edge) => edge.id === props.id ?
+                        {
+                            ...edge,
+                            markerStart: (sourceHandleId?.endsWith('-l') ? 'claw-left' : 'claw-right'),
+                            markerEnd: undefined,
+                            data: { type: 'many-to-one' }
+                        } : edge)
+                );
                 break;
             case 'many-to-many':
-                setEdges(getEdges().map((edge) => edge.id === props.id ? { ...edge, markerStart: (sourceHandleId?.endsWith('-l') ? 'from-many' : 'to-many'), markerEnd: (targetHandleId?.endsWith('-l') ? 'from-many' : 'to-many'), data: { type: 'many-to-many' } } : edge));
+                setEdges(
+                    getEdges().map((edge) => edge.id === props.id ?
+                        {
+                            ...edge,
+                            markerStart: (sourceHandleId?.endsWith('-l') ? 'claw-left' : 'claw-right'),
+                            markerEnd: (targetHandleId?.endsWith('-l') ? 'claw-left' : 'claw-right'),
+                            data: { type: 'many-to-many' }
+                        } : edge)
+                );
                 break;
         }
     }
 
     return (
-        <>
+        <React.Fragment key={props.id}>
             <BaseEdge
                 id={props.id}
                 path={edgePath}
@@ -78,7 +111,7 @@ function CustomEdge(props: EdgeProps) {
                     </Select>
                 )}
             </EdgeToolbar>
-        </>
+        </React.Fragment>
     );
 }
 
@@ -112,7 +145,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
     };
 
     return (
-        <div className="bg-muted border rounded-md flex flex-col">
+        <div className="bg-muted border rounded-md flex flex-col" key={id}>
             {/* Title */}
             <div className="p-4 border-b">
                 {isEditingTitle ? (
@@ -326,9 +359,13 @@ interface TableNodeData {
     onChange: (nodeId: string, updatedData: TableNodeData) => void;
 }
 
-export function ErdNode() {
-    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
+    const editor = useEditorRef();
+    const erdNodeRef = useRef<HTMLDivElement>(null);
+    const previousPosition = useRef<{ top: number, left: number, width: number, height: number } | null>(null);
+    const [nodes, setNodes] = useNodesState<Node>([]);
+    const [edges, setEdges] = useEdgesState<Edge>([]);
+    const [isMaximized, setIsMaximized] = useState(false);
 
     const onChange = useCallback((nodeId: string, updatedData: TableNodeData) => {
         setNodes((nds) =>
@@ -348,98 +385,183 @@ export function ErdNode() {
         );
     }, [setNodes]);
 
-    useEffect(() => {
-        setNodes([
-            {
-                id: '2',
-                type: 'tableNode',
-                data: {
-                    name: 'Table Name', columns: [{
-                        id: 'a',
-                        name: 'Column Name',
-                        type: 'int',
-                        pk: false,
-                    }, {
-                        id: 'b',
-                        name: 'Column Name',
-                        type: 'int',
-                        pk: false,
-                    }], onChange
-                },
-                position: { x: 200, y: 100 },
-            },
-            {
-                id: '3',
-                type: 'tableNode',
-                data: {
-                    name: 'Table Name', columns: [{
-                        id: 'c',
-                        name: 'Column Name',
-                        type: 'int',
-                        pk: false,
-                    }, {
-                        id: 'd',
-                        name: 'Column Name',
-                        type: 'int',
-                        pk: false,
-                    }], onChange
-                },
-                position: { x: 400, y: 100 },
+    const onNodesChange: OnNodesChange = useCallback((changes) => {
+        setNodes((nds) => applyNodeChanges(changes, nds));
+        for (const change of changes) {
+            if (change.type === 'remove') {
+                const updatedTables = nodes.filter((table) => table.id !== change.id);
+                editor.tf.setNodes({
+                    tables: updatedTables,
+                }, {
+                    at: element
+                });
+            } else if (change.type === 'position') {
+                const updatedTables = nodes.map((table) =>
+                    (table.id === change.id ? { ...table, position: change.position } : table)
+                );
+                editor.tf.setNodes({
+                    tables: updatedTables,
+                }, {
+                    at: element
+                });
             }
-        ]);
+        }
+    }, [setNodes, editor.tf, element, nodes])
 
-        setEdges([
-            {
-                id: 'e2-3',
-                source: '2',
-                sourceHandle: 'col-a-source-l',
-                target: '3',
-                targetHandle: 'col-c-target-r',
-                markerStart: 'from-one',
-                data: { type: 'one-to-one' },
-                markerEnd: 'to-one',
-            },
-        ]);
+    const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+        console.log(changes);
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+        for (const change of changes) {
+            if (change.type === 'remove') {
+                const updatedRelationships = edges.filter((edge) => edge.id !== change.id);
+                editor.tf.setNodes({
+                    relationships: updatedRelationships,
+                }, {
+                    at: element
+                });
+            } else if (change.type === 'replace') {
+                const updatedRelationships = edges.map((edge) =>
+                    (edge.id === change.id ? { ...change.item, id: change.id } : edge)
+                );
+                editor.tf.setNodes({
+                    relationships: updatedRelationships,
+                }, {
+                    at: element
+                });
+            } else if (change.type === 'add') {
+                const updatedRelationships = [...edges, { ...change.item }];
+                editor.tf.setNodes({
+                    relationships: updatedRelationships,
+                }, {
+                    at: element
+                });
+            } else if (change.type === 'select') {
+                const updatedRelationships = edges.map((edge) =>
+                    (edge.id === change.id ? { ...edge, selected: change.selected } : edge)
+                );
+                editor.tf.setNodes({
+                    relationships: updatedRelationships,
+                }, {
+                    at: element
+                });
+            }
+        }
+    }, [setEdges, editor.tf, element, edges]);
+
+    useEffect(() => {
+        setNodes(element.tables.map((table) => ({
+            ...table,
+            data: {
+                ...table.data,
+                onChange,
+            }
+        })));
+        setEdges(element.relationships);
     }, []);
 
-    const onConnect = useCallback(
-        (params: Edge | Connection) => setEdges((eds) => addEdge({ ...params, animated: false }, eds)),
-        [setEdges],
-    );
+    const onConnect = useCallback((params: Edge | Connection) => {
+        setEdges((eds) => addEdge({ ...params, animated: false }, eds));
+        editor.tf.setNodes({
+            relationships: [...edges, { ...params, animated: false }],
+        }, {
+            at: element
+        });
 
-    const handleAddTable = useCallback(() => {
-        setNodes((nds) => [...nds, { id: crypto.randomUUID(), type: 'tableNode', data: { name: 'New Table', columns: [], onChange }, position: { x: 200, y: 100 } }]);
-    }, [setNodes, onChange]);
+        console.log([...edges, { ...params, animated: false }]);
+    }, [setEdges, editor.tf, element, edges]);
+
+    const handleAddTable = () => {
+        const newTable = {
+            id: crypto.randomUUID(),
+            type: 'tableNode',
+            data: { name: 'New Table', columns: [], onChange },
+            position: { x: 200, y: 100 },
+        };
+        editor.tf.setNodes({
+            tables: [...element.tables, newTable],
+        }, {
+            at: element
+        });
+
+        setNodes((nds) => [...nds, newTable]);
+    };
+
+    const handleMaximize = () => {
+        setIsMaximized(true);
+        // get current position, change element to fixed, slowly expand to full screen
+        const position = erdNodeRef.current?.getBoundingClientRect();
+        if (position) {
+            previousPosition.current = position;
+            erdNodeRef.current!.style.position = 'fixed';
+            erdNodeRef.current!.style.top = `${position.top}px`;
+            erdNodeRef.current!.style.left = `${position.left}px`;
+            erdNodeRef.current!.style.right = `${position.right}px`;
+            erdNodeRef.current!.style.height = `${position.height}px`;
+        }
+        setTimeout(() => {
+            erdNodeRef.current!.style.zIndex = '1000';
+            erdNodeRef.current!.style.top = `0px`;
+            erdNodeRef.current!.style.left = `0px`;
+            erdNodeRef.current!.style.right = '0px';
+            erdNodeRef.current!.style.height = '100%';
+            erdNodeRef.current!.style.borderRadius = '0px';
+            erdNodeRef.current!.style.backgroundColor = 'var(--background)';
+        }, 0);
+    }
+
+    const handleMinimize = () => {
+        setIsMaximized(false);
+
+        erdNodeRef.current!.style.top = `${previousPosition.current?.top}px`;
+        erdNodeRef.current!.style.left = `${previousPosition.current?.left}px`;
+        erdNodeRef.current!.style.width = `${previousPosition.current?.width}px`;
+        erdNodeRef.current!.style.height = `${previousPosition.current?.height}px`;
+        setTimeout(() => {
+            erdNodeRef.current!.style.position = 'relative';
+            erdNodeRef.current!.style.position = '';
+            erdNodeRef.current!.style.width = '';
+            erdNodeRef.current!.style.height = '';
+            erdNodeRef.current!.style.zIndex = '';
+            erdNodeRef.current!.style.top = '';
+            erdNodeRef.current!.style.left = '';
+            erdNodeRef.current!.style.right = '';
+            erdNodeRef.current!.style.bottom = '';
+            erdNodeRef.current!.style.borderRadius = '';
+            erdNodeRef.current!.style.backgroundColor = '';
+        }, 300);
+    }
 
     return (
-        <div className='w-full h-[500px] relative border rounded-md'>
+        <div className='w-full h-[500px] border rounded-md transition-all duration-300' ref={erdNodeRef}>
             <svg style={{ position: 'absolute', top: 0, left: 0 }}>
                 <defs>
                     <marker
-                        id="from-many"
+                        id="claw-left"
                         viewBox="0 0 100 100"
-                        markerHeight={32}
-                        markerWidth={32}
-                        refX={50}
+                        markerHeight={20}
+                        markerWidth={20}
+                        refX={84}
                         refY={50}
+                        orient="0"
                     >
                         <path d="M100 50 L0 50 M0 50 L100 0 M0 50 L100 100" stroke='#b1b1b7'
-                            strokeWidth="3" />
+                            strokeWidth="4" />
                     </marker>
                 </defs>
             </svg>
             <svg style={{ position: 'absolute', top: 0, left: 0 }}>
                 <defs>
                     <marker
-                        id="to-many"
+                        id="claw-right"
                         viewBox="0 0 100 100"
-                        markerHeight={32}
-                        markerWidth={32}
-                        refX={50}
+                        markerHeight={20}
+                        markerWidth={20}
+                        refX={16}
                         refY={50}
+                        orient="0"
                     >
                         <path d="M100 50 L0 50 M100 50 L0 0 M100 50 L0 100" stroke="#b1b1b7"
-                            strokeWidth="3" />
+                            strokeWidth="4" />
                     </marker>
                 </defs>
             </svg>
@@ -456,10 +578,18 @@ export function ErdNode() {
                 proOptions={proOptions}
                 attributionPosition="bottom-left"
             >
-                <Button className='absolute top-4 right-4 z-10 cursor-pointer' onClick={handleAddTable}>
+                <Button variant="outline" size="icon" className='absolute top-2 right-2 z-10 cursor-pointer' onClick={handleAddTable}>
                     <PlusIcon className="size-4" />
-                    Add Table
                 </Button>
+                {isMaximized ? (
+                    <Button variant="outline" size="icon" className='absolute bottom-2 right-2 z-10 cursor-pointer' onClick={handleMinimize}>
+                        <Minimize className="size-4" />
+                    </Button>
+                ) : (
+                    <Button variant="outline" size="icon" className='absolute bottom-2 right-2 z-10 cursor-pointer' onClick={handleMaximize}>
+                        <Maximize className="size-4" />
+                    </Button>
+                )}
                 <Background />
             </ReactFlow>
         </div>

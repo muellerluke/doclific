@@ -45,7 +45,7 @@ export const MarkdownKit = [
               type: 'mdxJsxFlowElement',
               name: ERDType,
               attributes: [
-                { type: 'mdxJsxAttribute', name: 'entities', value: slateNode.entities ? JSON.stringify(slateNode.entities) : '[]' },
+                { type: 'mdxJsxAttribute', name: 'tables', value: slateNode.tables ? JSON.stringify(slateNode.tables) : '[]' },
                 { type: 'mdxJsxAttribute', name: 'relationships', value: slateNode.relationships ? JSON.stringify(slateNode.relationships) : '[]' },
               ],
               children: [{ type: 'text', value: '' }],
@@ -59,7 +59,7 @@ export const MarkdownKit = [
 
             return {
               type: ERDType,
-              entities: getAttr('entities'),
+              tables: getAttr('tables'),
               relationships: getAttr('relationships'),
               children: [{ text: '' }],
             }
