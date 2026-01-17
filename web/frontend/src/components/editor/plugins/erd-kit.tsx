@@ -4,15 +4,83 @@ import { ErdNode } from "@/components/ui/erd-node";
 export const ERDType = 'ERD';
 
 export type DataType =
-    | 'int'
+    // Numeric
+    | 'smallint'
+    | 'integer'
     | 'bigint'
+    | 'decimal'
+    | 'numeric'
+    | 'real'
+    | 'double precision'
+    | 'smallserial'
+    | 'serial'
+    | 'bigserial'
+
+    // Monetary
+    | 'money'
+
+    // Character
+    | 'char'
     | 'varchar'
     | 'text'
-    | 'boolean'
+
+    // Binary
+    | 'bytea'
+
+    // Date / Time
     | 'date'
+    | 'time'
+    | 'timetz'
     | 'timestamp'
+    | 'timestamptz'
+    | 'interval'
+
+    // Boolean
+    | 'boolean'
+
+    // Network
+    | 'inet'
+    | 'cidr'
+    | 'macaddr'
+    | 'macaddr8'
+
+    // Bit strings
+    | 'bit'
+    | 'bit varying'
+    | 'varbit'
+
+    // Full-text search
+    | 'tsvector'
+    | 'tsquery'
+
+    // UUID
+    | 'uuid'
+
+    // XML / JSON
+    | 'xml'
     | 'json'
-    | 'uuid';
+    | 'jsonb'
+
+    // Geometric
+    | 'point'
+    | 'line'
+    | 'lseg'
+    | 'box'
+    | 'path'
+    | 'polygon'
+    | 'circle'
+
+    // Range types
+    | 'int4range'
+    | 'int8range'
+    | 'numrange'
+    | 'daterange'
+    | 'tsrange'
+    | 'tstzrange'
+
+    // System
+    | 'pg_lsn'
+    | 'txid_snapshot';
 
 export interface Column {
     id: string;

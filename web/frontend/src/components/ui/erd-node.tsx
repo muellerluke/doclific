@@ -44,8 +44,6 @@ function CustomEdge(props: EdgeProps) {
     const [edgePath, centerX, centerY] = getSmoothStepPath(props);
     const { getEdges, setEdges } = useReactFlow();
 
-    console.log(targetHandleId?.endsWith('-l'), sourceHandleId?.endsWith('-l'));
-
     const handleTypeChange = (type: string) => {
         switch (type) {
             case 'one-to-one':
@@ -220,30 +218,29 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>Monetary Types</SelectLabel>
+                                        <SelectLabel>Monetary Type</SelectLabel>
                                         <SelectItem value="money">money</SelectItem>
                                     </SelectGroup>
 
                                     <SelectGroup>
                                         <SelectLabel>Character Types</SelectLabel>
-                                        <SelectItem value="character">character</SelectItem>
-                                        <SelectItem value="varchar">varchar</SelectItem>
                                         <SelectItem value="char">char</SelectItem>
+                                        <SelectItem value="varchar">varchar</SelectItem>
                                         <SelectItem value="text">text</SelectItem>
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>Binary Data Types</SelectLabel>
+                                        <SelectLabel>Binary Type</SelectLabel>
                                         <SelectItem value="bytea">bytea</SelectItem>
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>Date/Time Types</SelectLabel>
+                                        <SelectLabel>Date / Time Types</SelectLabel>
                                         <SelectItem value="date">date</SelectItem>
-                                        <SelectItem value="timestamp without time zone">timestamp without time zone</SelectItem>
-                                        <SelectItem value="timestamp with time zone">timestamp with time zone</SelectItem>
-                                        <SelectItem value="time without time zone">time without time zone</SelectItem>
-                                        <SelectItem value="time with time zone">time with time zone</SelectItem>
+                                        <SelectItem value="time">time</SelectItem>
+                                        <SelectItem value="timetz">timetz</SelectItem>
+                                        <SelectItem value="timestamp">timestamp</SelectItem>
+                                        <SelectItem value="timestamptz">timestamptz</SelectItem>
                                         <SelectItem value="interval">interval</SelectItem>
                                     </SelectGroup>
 
@@ -268,7 +265,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>Text Search Types</SelectLabel>
+                                        <SelectLabel>Full-Text Search Types</SelectLabel>
                                         <SelectItem value="tsvector">tsvector</SelectItem>
                                         <SelectItem value="tsquery">tsquery</SelectItem>
                                     </SelectGroup>
@@ -279,12 +276,8 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>XML Type</SelectLabel>
+                                        <SelectLabel>XML / JSON Types</SelectLabel>
                                         <SelectItem value="xml">xml</SelectItem>
-                                    </SelectGroup>
-
-                                    <SelectGroup>
-                                        <SelectLabel>JSON Types</SelectLabel>
                                         <SelectItem value="json">json</SelectItem>
                                         <SelectItem value="jsonb">jsonb</SelectItem>
                                     </SelectGroup>
@@ -301,11 +294,22 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                     </SelectGroup>
 
                                     <SelectGroup>
-                                        <SelectLabel>Object Identifier Types</SelectLabel>
+                                        <SelectLabel>Range Types</SelectLabel>
+                                        <SelectItem value="int4range">int4range</SelectItem>
+                                        <SelectItem value="int8range">int8range</SelectItem>
+                                        <SelectItem value="numrange">numrange</SelectItem>
+                                        <SelectItem value="daterange">daterange</SelectItem>
+                                        <SelectItem value="tsrange">tsrange</SelectItem>
+                                        <SelectItem value="tstzrange">tstzrange</SelectItem>
+                                    </SelectGroup>
+
+                                    <SelectGroup>
+                                        <SelectLabel>System Types</SelectLabel>
                                         <SelectItem value="pg_lsn">pg_lsn</SelectItem>
-                                        <SelectItem value="pg_snapshot">pg_snapshot</SelectItem>
+                                        <SelectItem value="txid_snapshot">txid_snapshot</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
+
                             </Select>
                             <Button variant="outline" size="icon" className='w-full cursor-pointer' onClick={() => handleColumnDelete(col.id)}>
                                 <Trash2Icon className="size-4" />
@@ -368,8 +372,9 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
     const [isMaximized, setIsMaximized] = useState(false);
 
     const onChange = useCallback((nodeId: string, updatedData: TableNodeData) => {
-        setNodes((nds) =>
-            nds.map((node) => {
+        setNodes((nds) => {
+
+            const updatedNodes = nds.map((node) => {
                 if (node.id !== nodeId) {
                     return node;
                 }
@@ -381,9 +386,17 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
                         ...updatedData,
                     },
                 };
-            }),
-        );
-    }, [setNodes]);
+            });
+
+            editor.tf.setNodes({
+                tables: updatedNodes,
+            }, {
+                at: element
+            });
+
+            return updatedNodes;
+        });
+    }, [setNodes, editor.tf, element]);
 
     const onNodesChange: OnNodesChange = useCallback((changes) => {
         setNodes((nds) => applyNodeChanges(changes, nds));
@@ -409,7 +422,6 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
     }, [setNodes, editor.tf, element, nodes])
 
     const onEdgesChange: OnEdgesChange = useCallback((changes) => {
-        console.log(changes);
         setEdges((eds) => applyEdgeChanges(changes, eds));
         for (const change of changes) {
             if (change.type === 'remove') {
@@ -466,8 +478,6 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
         }, {
             at: element
         });
-
-        console.log([...edges, { ...params, animated: false }]);
     }, [setEdges, editor.tf, element, edges]);
 
     const handleAddTable = () => {
@@ -532,7 +542,7 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
     }
 
     return (
-        <div className='w-full h-[500px] border rounded-md transition-all duration-300' ref={erdNodeRef}>
+        <div contentEditable={false} className='w-full h-[500px] border rounded-md transition-all duration-300' ref={erdNodeRef}>
             <svg style={{ position: 'absolute', top: 0, left: 0 }}>
                 <defs>
                     <marker
