@@ -34,6 +34,7 @@ When writing documentation:
 1. Explain concepts using "text" nodes
 2. Reference implementation using "codebase snippet" nodes
 3. Use "list" nodes only for summaries
+4. Use "erd" nodes to show the database schema
 
 If you need to show code, DO NOT paste it — reference it.
 
@@ -124,6 +125,178 @@ var richTextJSONSchema = `
           "nodeType",
           "type",
           "items"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "properties": {
+          "nodeType": {
+            "type": "string",
+            "const": "erd"
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the table"
+                },
+                "columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "smallint",
+                          "integer",
+                          "bigint",
+                          "decimal",
+                          "numeric",
+                          "real",
+                          "double precision",
+                          "smallserial",
+                          "serial",
+                          "bigserial",
+                          "money",
+                          "char",
+                          "varchar",
+                          "text",
+                          "bytea",
+                          "date",
+                          "time",
+                          "timetz",
+                          "timestamp",
+                          "timestamptz",
+                          "interval",
+                          "boolean",
+                          "inet",
+                          "cidr",
+                          "macaddr",
+                          "macaddr8",
+                          "bit",
+                          "bit varying",
+                          "varbit",
+                          "tsvector",
+                          "tsquery",
+                          "uuid",
+                          "xml",
+                          "json",
+                          "jsonb",
+                          "point",
+                          "line",
+                          "lseg",
+                          "box",
+                          "path",
+                          "polygon",
+                          "circle",
+                          "int4range",
+                          "int8range",
+                          "numrange",
+                          "daterange",
+                          "tsrange",
+                          "tstzrange",
+                          "pg_lsn",
+                          "txid_snapshot"
+                        ]
+                      },
+                      "nullable": {
+                        "type": "boolean"
+                      },
+                      "primaryKey": {
+                        "type": "boolean"
+                      },
+                      "unique": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "type",
+                      "nullable"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "position": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": -100,
+                      "maximum": 100,
+                      "description": "The x position of the table"
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -100,
+                      "maximum": 100,
+                      "description": "The y position of the table"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "name",
+                "columns",
+                "position"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "table1": {
+                  "type": "string",
+                  "description": "The name of the first table"
+                },
+                "table2": {
+                  "type": "string",
+                  "description": "The name of the second table"
+                },
+                "cardinality": {
+                  "type": "string",
+                  "enum": [
+                    "1:1",
+                    "1:N",
+                    "N:N",
+                    "N:1"
+                  ],
+                  "description": "The cardinality of the relationship -- 1:1, 1:N, N:N, N:1 where the first character is table1 and the second character is table2"
+                }
+              },
+              "required": [
+                "table1",
+                "table2",
+                "cardinality"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "nodeType",
+          "tables",
+          "relationships"
         ],
         "additionalProperties": false
       }

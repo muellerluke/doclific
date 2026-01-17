@@ -40,6 +40,7 @@ import type { PlateElementProps } from 'platejs/react';
 import { useEditorRef } from 'platejs/react';
 
 function CustomEdge(props: EdgeProps) {
+    console.log(props);
     const { selected, sourceHandleId, targetHandleId } = props;
     const [edgePath, centerX, centerY] = getSmoothStepPath(props);
     const { getEdges, setEdges } = useReactFlow();
@@ -123,7 +124,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
     };
 
     const handleAddColumn = () => {
-        onChange(id, { columns: [...columns, { id: crypto.randomUUID(), name: 'New Column', type: 'int', pk: false }], name: 'New Table', onChange });
+        onChange(id, { columns: [...columns, { id: crypto.randomUUID(), name: 'New Column', type: 'integer', pk: false }], onChange, name });
     };
 
     const handlePkChange = (colId: string, pk: boolean) => {

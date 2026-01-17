@@ -2,6 +2,8 @@
  * AI API client functions for TanStack React Query
  */
 
+import type { DataType } from '@/components/editor/plugins/erd-kit';
+
 const API_BASE_URL = `http://localhost:${window.env.PORT ?? 6767}/api`;
 
 export interface GenerateRichTextRequest {
@@ -9,13 +11,34 @@ export interface GenerateRichTextRequest {
 }
 
 export interface RichTextNode {
-	nodeType: 'text' | 'codebase_snippet' | 'list';
+	nodeType: 'text' | 'codebase_snippet' | 'list' | 'erd';
 	type?: 'p' | 'h1' | 'h2' | 'h3' | 'numbered' | 'bulleted';
 	text?: string;
 	filePath?: string;
 	lineStart?: number;
 	lineEnd?: number;
 	items?: string[];
+	tables?: {
+		name: string;
+		columns: {
+			name: string;
+			type: DataType;
+			nullable: boolean;
+			primaryKey: boolean;
+			unique: boolean;
+		}[];
+		position: {
+			x: number;
+			y: number;
+		};
+	}[];
+	relationships?: {
+		table1: string;
+		column1: string;
+		table2: string;
+		column2: string;
+		cardinality: '1:1' | '1:N' | 'N:N' | 'N:1';
+	}[];
 }
 
 /**
@@ -52,6 +75,82 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						listStyleType: node.type === 'numbered' ? 'decimal' : 'disc',
 					})) || []
 				);
+			case 'erd': {
+				const tables = node.tables!.map((table) => ({
+					id: crypto.randomUUID(),
+					type: 'tableNode',
+					data: {
+						name: table.name,
+						columns: table.columns.map((column) => ({
+							id: crypto.randomUUID(),
+							name: column.name,
+							type: column.type,
+							nullable: column.nullable,
+							primaryKey: column.primaryKey,
+							unique: column.unique,
+						})),
+					},
+					position: table.position,
+				}));
+
+				const relationships = node.relationships!.map((relationship) => {
+					const sourceTable = tables.find(
+						(table) => table.data.name === relationship.table1
+					);
+					const targetTable = tables.find(
+						(table) => table.data.name === relationship.table2
+					);
+					if (!sourceTable || !targetTable) {
+						return null;
+					}
+					const sourceColumn = sourceTable.data.columns.find(
+						(column) => column.name === relationship.column1
+					);
+					const targetColumn = targetTable.data.columns.find(
+						(column) => column.name === relationship.column2
+					);
+					if (!sourceColumn || !targetColumn) {
+						return null;
+					}
+
+					let markerStart: string | undefined = undefined;
+					let markerEnd: string | undefined = undefined;
+					switch (relationship.cardinality) {
+						case '1:N':
+							markerEnd = 'claw-right';
+							break;
+						case 'N:1':
+							markerStart = 'claw-right';
+							break;
+						case 'N:N':
+							markerStart = 'claw-right';
+							markerEnd = 'claw-right';
+							break;
+					}
+
+					return {
+						id: crypto.randomUUID(),
+						type: 'edge',
+						source: sourceTable.id,
+						sourceHandle: `col-${sourceColumn.id}-source-r`,
+						target: targetTable.id,
+						targetHandle: `col-${targetColumn.id}-target-r`,
+						animated: false,
+						markerStart,
+						markerEnd,
+						data: {
+							type: relationship.cardinality,
+						},
+					};
+				});
+				return [
+					{
+						type: 'ERD',
+						tables: tables,
+						relationships: relationships,
+					},
+				];
+			}
 			default:
 				return [];
 		}
