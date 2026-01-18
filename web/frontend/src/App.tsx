@@ -6,6 +6,7 @@ import Editor from "./pages/editor"
 import { useQuery } from "@tanstack/react-query"
 import { checkUpdate } from "./api/update"
 import { useEffect } from "react"
+import { NoDocSelected } from "./pages/no-doc-selected"
 
 /**
  * Checks if the current version is newer than the latest version
@@ -60,7 +61,7 @@ function App() {
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Layout>
         <Routes>
-          <Route path="/" element={<div></div>} />
+          <Route path="/" element={<NoDocSelected />} />
           <Route path="/*" element={<Editor />} />
         </Routes>
       </Layout>
