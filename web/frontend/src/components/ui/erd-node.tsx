@@ -123,11 +123,11 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
     };
 
     const handleAddColumn = () => {
-        onChange(id, { columns: [...columns, { id: crypto.randomUUID(), name: 'New Column', type: 'integer', pk: false }], onChange, name });
+        onChange(id, { columns: [...columns, { id: crypto.randomUUID(), name: 'New Column', type: 'integer', primaryKey: false, nullable: false }], onChange, name });
     };
 
-    const handlePkChange = (colId: string, pk: boolean) => {
-        onChange(id, { columns: columns.map((col) => col.id === colId ? { ...col, pk } : col), name, onChange });
+    const handlePkChange = (colId: string, primaryKey: boolean) => {
+        onChange(id, { columns: columns.map((col) => col.id === colId ? { ...col, primaryKey } : col), name, onChange });
     };
 
     const handleColumnNameChange = (colId: string, columnName: string) => {
@@ -140,6 +140,10 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
 
     const handleColumnDelete = (colId: string) => {
         onChange(id, { columns: columns.filter((col) => col.id !== colId), name, onChange });
+    };
+
+    const handleColumnNullableChange = (colId: string, nullable: boolean) => {
+        onChange(id, { columns: columns.map((col) => col.id === colId ? { ...col, nullable } : col), name, onChange });
     };
 
     return (
@@ -170,16 +174,17 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
 
             {/* Columns */}
             <div className="relative flex flex-col py-4">
-                <div className='grid grid-cols-[22px_120px_150px_32px] gap-2 px-4 pb-4 items-center relative'>
+                <div className='grid grid-cols-[22px_130px_140px_22px_32px] gap-2 px-4 pb-4 items-center relative'>
                     <Label>PK</Label>
                     <Label>Column</Label>
                     <Label>Type</Label>
+                    <Label>N</Label>
                 </div>
                 {columns.map((col, index) => {
                     return (
                         <div
                             key={index}
-                            className="grid grid-cols-[22px_120px_150px_32px] gap-2 px-4 mb-4 items-center relative"
+                            className="grid grid-cols-[22px_130px_140px_22px_32px] gap-2 px-4 mb-4 items-center relative"
                         >
                             {/* Target handle (left) */}
                             <Handle
@@ -193,7 +198,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                 type="target"
                                 position={Position.Left}
                             />
-                            <Checkbox checked={col.pk} onCheckedChange={(checked) => handlePkChange(col.id, checked as boolean)} />
+                            <Checkbox checked={col.primaryKey} onCheckedChange={(checked) => handlePkChange(col.id, checked as boolean)} />
                             <Input
                                 defaultValue={col.name}
                                 onBlur={(e) => handleColumnNameChange(col.id, e.target.value)}
@@ -311,6 +316,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
                                 </SelectContent>
 
                             </Select>
+                            <Checkbox checked={col.nullable} onCheckedChange={(checked) => handleColumnNullableChange(col.id, checked as boolean)} />
                             <Button variant="outline" size="icon" className='w-full cursor-pointer' onClick={() => handleColumnDelete(col.id)}>
                                 <Trash2Icon className="size-4" />
                             </Button>
@@ -358,7 +364,8 @@ interface TableNodeData {
         id: string;
         name: string;
         type: string;
-        pk: boolean;
+        primaryKey: boolean;
+        nullable: boolean;
     }[];
     onChange: (nodeId: string, updatedData: TableNodeData) => void;
 }

@@ -137,6 +137,22 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 							break;
 					}
 
+					let type: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many' = 'one-to-one';
+					switch (relationship.cardinality) {
+						case '1:1':
+							type = 'one-to-one';
+							break;
+						case '1:N':
+							type = 'one-to-many';
+							break;
+						case 'N:1':
+							type = 'many-to-one';
+							break;
+						case 'N:N':
+							type = 'many-to-many';
+							break;
+					}
+
 					return {
 						id: crypto.randomUUID(),
 						type: 'edge',
@@ -148,7 +164,7 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						markerStart,
 						markerEnd,
 						data: {
-							type: relationship.cardinality,
+							type,
 						},
 					};
 				});
