@@ -85,9 +85,9 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 							id: crypto.randomUUID(),
 							name: column.name,
 							type: column.type,
-							nullable: column.nullable,
-							primaryKey: column.primaryKey,
-							unique: column.unique,
+							nullable: column.nullable ?? false,
+							primaryKey: column.primaryKey ?? false,
+							unique: column.unique ?? false,
 						})),
 					},
 					position: table.position,
@@ -100,8 +100,11 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 					const targetTable = tables.find(
 						(table) => table.data.name === relationship.table2
 					);
+
 					if (!sourceTable || !targetTable) {
-						return null;
+						throw new Error(
+							`Source or target table not found for relationship: ${relationship.table1} -> ${relationship.table2}`
+						);
 					}
 					const sourceColumn = sourceTable.data.columns.find(
 						(column) => column.name === relationship.column1
@@ -109,22 +112,28 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 					const targetColumn = targetTable.data.columns.find(
 						(column) => column.name === relationship.column2
 					);
+
 					if (!sourceColumn || !targetColumn) {
-						return null;
+						throw new Error(
+							`Source or target column not found for relationship: ${relationship.table1}.${relationship.column1} -> ${relationship.table2}.${relationship.column2}`
+						);
 					}
+
+					const sourceSide = sourceTable.position.x > targetTable.position.x ? 'l' : 'r';
+					const targetSide = sourceTable.position.x > targetTable.position.x ? 'r' : 'l';
 
 					let markerStart: string | undefined = undefined;
 					let markerEnd: string | undefined = undefined;
 					switch (relationship.cardinality) {
 						case '1:N':
-							markerEnd = 'claw-right';
+							markerEnd = targetSide === 'r' ? 'claw-right' : 'claw-left';
 							break;
 						case 'N:1':
-							markerStart = 'claw-right';
+							markerStart = sourceSide === 'r' ? 'claw-right' : 'claw-left';
 							break;
 						case 'N:N':
-							markerStart = 'claw-right';
-							markerEnd = 'claw-right';
+							markerStart = sourceSide === 'r' ? 'claw-right' : 'claw-left';
+							markerEnd = targetSide === 'r' ? 'claw-right' : 'claw-left';
 							break;
 					}
 
@@ -132,9 +141,9 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						id: crypto.randomUUID(),
 						type: 'edge',
 						source: sourceTable.id,
-						sourceHandle: `col-${sourceColumn.id}-source-r`,
+						sourceHandle: `col-${sourceColumn.id}-source-${sourceSide}`,
 						target: targetTable.id,
-						targetHandle: `col-${targetColumn.id}-target-r`,
+						targetHandle: `col-${targetColumn.id}-target-${targetSide}`,
 						animated: false,
 						markerStart,
 						markerEnd,
@@ -148,6 +157,7 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						type: 'ERD',
 						tables: tables,
 						relationships: relationships,
+						children: [{ text: '' }],
 					},
 				];
 			}

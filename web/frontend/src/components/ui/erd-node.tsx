@@ -40,7 +40,6 @@ import type { PlateElementProps } from 'platejs/react';
 import { useEditorRef } from 'platejs/react';
 
 function CustomEdge(props: EdgeProps) {
-    console.log(props);
     const { selected, sourceHandleId, targetHandleId } = props;
     const [edgePath, centerX, centerY] = getSmoothStepPath(props);
     const { getEdges, setEdges } = useReactFlow();
@@ -364,10 +363,9 @@ interface TableNodeData {
     onChange: (nodeId: string, updatedData: TableNodeData) => void;
 }
 
-export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
+export default function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
     const editor = useEditorRef();
     const erdNodeRef = useRef<HTMLDivElement>(null);
-    const previousPosition = useRef<{ top: number, left: number, width: number, height: number } | null>(null);
     const [nodes, setNodes] = useNodesState<Node>([]);
     const [edges, setEdges] = useEdgesState<Edge>([]);
     const [isMaximized, setIsMaximized] = useState(false);
@@ -499,51 +497,33 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
 
     const handleMaximize = () => {
         setIsMaximized(true);
-        // get current position, change element to fixed, slowly expand to full screen
-        const position = erdNodeRef.current?.getBoundingClientRect();
-        if (position) {
-            previousPosition.current = position;
-            erdNodeRef.current!.style.position = 'fixed';
-            erdNodeRef.current!.style.top = `${position.top}px`;
-            erdNodeRef.current!.style.left = `${position.left}px`;
-            erdNodeRef.current!.style.right = `${position.right}px`;
-            erdNodeRef.current!.style.height = `${position.height}px`;
-        }
-        setTimeout(() => {
-            erdNodeRef.current!.style.zIndex = '1000';
-            erdNodeRef.current!.style.top = `0px`;
-            erdNodeRef.current!.style.left = `0px`;
-            erdNodeRef.current!.style.right = '0px';
-            erdNodeRef.current!.style.height = '100%';
-            erdNodeRef.current!.style.borderRadius = '0px';
-            erdNodeRef.current!.style.backgroundColor = 'var(--background)';
-        }, 0);
+        erdNodeRef.current!.style.position = 'fixed';
+        erdNodeRef.current!.style.top = `0px`;
+        erdNodeRef.current!.style.left = `0px`;
+        erdNodeRef.current!.style.right = '0px';
+        erdNodeRef.current!.style.height = '100%';
+        erdNodeRef.current!.style.borderRadius = '0px';
+        erdNodeRef.current!.style.zIndex = '1000';
+        erdNodeRef.current!.style.backgroundColor = 'var(--background)';
     }
 
     const handleMinimize = () => {
         setIsMaximized(false);
-
-        erdNodeRef.current!.style.top = `${previousPosition.current?.top}px`;
-        erdNodeRef.current!.style.left = `${previousPosition.current?.left}px`;
-        erdNodeRef.current!.style.width = `${previousPosition.current?.width}px`;
-        erdNodeRef.current!.style.height = `${previousPosition.current?.height}px`;
-        setTimeout(() => {
-            erdNodeRef.current!.style.position = 'relative';
-            erdNodeRef.current!.style.position = '';
-            erdNodeRef.current!.style.width = '';
-            erdNodeRef.current!.style.height = '';
-            erdNodeRef.current!.style.zIndex = '';
-            erdNodeRef.current!.style.top = '';
-            erdNodeRef.current!.style.left = '';
-            erdNodeRef.current!.style.right = '';
-            erdNodeRef.current!.style.bottom = '';
-            erdNodeRef.current!.style.borderRadius = '';
-            erdNodeRef.current!.style.backgroundColor = '';
-        }, 300);
+        erdNodeRef.current!.style.position = 'relative';
+        erdNodeRef.current!.style.position = '';
+        erdNodeRef.current!.style.width = '';
+        erdNodeRef.current!.style.height = '';
+        erdNodeRef.current!.style.zIndex = '';
+        erdNodeRef.current!.style.top = '';
+        erdNodeRef.current!.style.left = '';
+        erdNodeRef.current!.style.right = '';
+        erdNodeRef.current!.style.bottom = '';
+        erdNodeRef.current!.style.borderRadius = '';
+        erdNodeRef.current!.style.backgroundColor = '';
     }
 
     return (
-        <div contentEditable={false} className='w-full h-[500px] border rounded-md transition-all duration-300' ref={erdNodeRef}>
+        <div contentEditable={false} className='w-full h-[500px] border rounded-md' ref={erdNodeRef}>
             <svg style={{ position: 'absolute', top: 0, left: 0 }}>
                 <defs>
                     <marker
@@ -586,6 +566,8 @@ export function ErdNode({ element }: PlateElementProps<ErdNodeType>) {
                 edgeTypes={edgeTypes}
                 defaultViewport={defaultViewport}
                 fitView
+                minZoom={0.2}
+                onlyRenderVisibleElements={true}
                 proOptions={proOptions}
                 attributionPosition="bottom-left"
             >

@@ -34,6 +34,14 @@ When writing documentation:
 1. Explain concepts using "text" nodes
 2. Reference implementation using "codebase snippet" nodes
 3. Use "list" nodes only for summaries
+4. Use "erd" nodes to show the database schema as an entity relationship diagram only if the user requests an ERD or database diagram
+
+For the ERD, ensure that you get ALL of the files containing models for the database schema. There should be no omissions of tables or columns.
+They will likely be all in the same directory.
+Once you find the correct directory through trial and error, use the getFileContents tool to get all the file contents for all database models.
+Ensure that you use the actual column name, not the alias or key used in the code, for the table column name and the relationships.
+For the ERD, before generating the rich_text output, you must first create a hidden list of all database entities found across ALL provided files. 
+Ensure every struct or model definition is accounted for. Once the list is complete, map every single one of those entities to the ERD structure.
 
 If you need to show code, DO NOT paste it — reference it.
 
@@ -148,11 +156,9 @@ var richTextJSONSchema = `
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id": {
-                        "type": "string"
-                      },
                       "name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "The name of the column"
                       },
                       "type": {
                         "type": "string",
@@ -220,7 +226,6 @@ var richTextJSONSchema = `
                       }
                     },
                     "required": [
-                      "id",
                       "name",
                       "type",
                       "nullable"
@@ -233,15 +238,15 @@ var richTextJSONSchema = `
                   "properties": {
                     "x": {
                       "type": "number",
-                      "minimum": -100,
-                      "maximum": 100,
-                      "description": "The x position of the table"
+                      "minimum": -1000,
+                      "maximum": 1000,
+                      "description": "The x position of the table; try to spread out tables as much as possible to avoid overlap"
                     },
                     "y": {
                       "type": "number",
-                      "minimum": -100,
-                      "maximum": 100,
-                      "description": "The y position of the table"
+                      "minimum": -1000,
+                      "maximum": 1000,
+                      "description": "The y position of the table; try to spread out tables as much as possible to avoid overlap"
                     }
                   },
                   "required": [
@@ -268,9 +273,17 @@ var richTextJSONSchema = `
                   "type": "string",
                   "description": "The name of the first table"
                 },
+                "column1": {
+                  "type": "string",
+                  "description": "The name of the first column"
+                },
                 "table2": {
                   "type": "string",
                   "description": "The name of the second table"
+                },
+                "column2": {
+                  "type": "string",
+                  "description": "The name of the second column"
                 },
                 "cardinality": {
                   "type": "string",
@@ -280,12 +293,14 @@ var richTextJSONSchema = `
                     "N:N",
                     "N:1"
                   ],
-                  "description": "The cardinality of the relationship -- 1:1, 1:N, N:N, N:1 where the first character is table1 and the second character is table2"
+                  "description": "The cardinality of the relationship -- 1:1, 1:N, N:N, N:1"
                 }
               },
               "required": [
                 "table1",
+                "column1",
                 "table2",
+                "column2",
                 "cardinality"
               ],
               "additionalProperties": false
@@ -302,201 +317,6 @@ var richTextJSONSchema = `
     ]
   }
 }`
-
-var erdSchemaJSON = `
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "nodeType": {
-      "type": "string",
-      "const": "erd"
-    },
-    "tables": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the table"
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "smallint",
-                    "integer",
-                    "bigint",
-                    "decimal",
-                    "numeric",
-                    "real",
-                    "double precision",
-                    "smallserial",
-                    "serial",
-                    "bigserial",
-                    "money",
-                    "char",
-                    "varchar",
-                    "text",
-                    "bytea",
-                    "date",
-                    "time",
-                    "timetz",
-                    "timestamp",
-                    "timestamptz",
-                    "interval",
-                    "boolean",
-                    "inet",
-                    "cidr",
-                    "macaddr",
-                    "macaddr8",
-                    "bit",
-                    "bit varying",
-                    "varbit",
-                    "tsvector",
-                    "tsquery",
-                    "uuid",
-                    "xml",
-                    "json",
-                    "jsonb",
-                    "point",
-                    "line",
-                    "lseg",
-                    "box",
-                    "path",
-                    "polygon",
-                    "circle",
-                    "int4range",
-                    "int8range",
-                    "numrange",
-                    "daterange",
-                    "tsrange",
-                    "tstzrange",
-                    "pg_lsn",
-                    "txid_snapshot"
-                  ]
-                },
-                "nullable": {
-                  "type": "boolean"
-                },
-                "primaryKey": {
-                  "type": "boolean"
-                },
-                "unique": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "id",
-                "name",
-                "type",
-                "nullable"
-              ],
-              "additionalProperties": false
-            }
-          },
-          "position": {
-            "type": "object",
-            "properties": {
-              "x": {
-                "type": "number",
-                "minimum": -100,
-                "maximum": 100,
-                "description": "The x position of the table"
-              },
-              "y": {
-                "type": "number",
-                "minimum": -100,
-                "maximum": 100,
-                "description": "The y position of the table"
-              }
-            },
-            "required": [
-              "x",
-              "y"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "name",
-          "columns",
-          "position"
-        ],
-        "additionalProperties": false
-      }
-    },
-    "relationships": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "table1": {
-            "type": "string",
-            "description": "The name of the first table"
-          },
-          "column1": {
-            "type": "string",
-            "description": "The name of the first column"
-          },
-          "table2": {
-            "type": "string",
-            "description": "The name of the second table"
-          },
-          "column2": {
-            "type": "string",
-            "description": "The name of the second column"
-          },
-          "cardinality": {
-            "type": "string",
-            "enum": [
-              "1:1",
-              "1:N",
-              "N:N",
-              "N:1"
-            ],
-            "description": "The cardinality of the relationship -- 1:1, 1:N, N:N, N:1"
-          }
-        },
-        "required": [
-          "table1",
-          "column1",
-          "table2",
-          "column2",
-          "cardinality"
-        ],
-        "additionalProperties": false
-      }
-    }
-  },
-  "required": [
-    "nodeType",
-    "tables",
-    "relationships"
-  ],
-  "additionalProperties": false
-}`
-
-func getCreateDatabaseSchemaSchema() *genai.Schema {
-	var schema genai.Schema
-	err := json.Unmarshal([]byte(erdSchemaJSON), &schema)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid JSON schema: %v", err))
-	}
-
-	return &schema
-}
 
 func getRichTextSchema() *genai.Schema {
 	var schema genai.Schema
@@ -518,10 +338,6 @@ type getFileContentsArgs struct {
 }
 
 type getFileContentsResults struct {
-	FileContents []fileContentsResults `json:"fileContents"`
-}
-
-type createDatabaseSchemaArgs struct {
 	FileContents []fileContentsResults `json:"fileContents"`
 }
 
@@ -556,121 +372,6 @@ func executeGetFileContents(ctx tool.Context, args getFileContentsArgs) (getFile
 	return getFileContentsResults{
 		FileContents: results,
 	}, nil
-}
-
-func executeCreateDatabaseSchema(ctx tool.Context, args createDatabaseSchemaArgs) (map[string]any, error) {
-	googleAPIKey, err := config.GetConfigValue("GOOGLE_API_KEY")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Google API key: %v", err)
-	}
-
-	// Get the model from the config, if not set, use the default
-	modelName, err := config.GetConfigValue("AI_MODEL")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get AI model: %v", err)
-	}
-	if modelName == "" {
-		modelName = "gemini-3-flash-preview"
-	}
-
-	model, err := gemini.NewModel(context.Background(), modelName, &genai.ClientConfig{
-		APIKey: googleAPIKey,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create model: %v", err)
-	}
-
-	erdAgent, err := llmagent.New(llmagent.Config{
-		Name:         "database_schema_agent",
-		Model:        model,
-		Description:  "You generate database ERD schemas from model files.",
-		Instruction:  "Return a JSON object that matches the ERD schema exactly. Only include the JSON object.",
-		OutputSchema: getCreateDatabaseSchemaSchema(),
-		OutputKey:    "erd_schema",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create ERD agent: %v", err)
-	}
-
-	var promptBuilder strings.Builder
-	promptBuilder.WriteString("Generate a database ERD from the following file contents.\n\n")
-	for _, file := range args.FileContents {
-		promptBuilder.WriteString("File: ")
-		promptBuilder.WriteString(file.FilePath)
-		promptBuilder.WriteString("\n")
-		promptBuilder.WriteString(file.Contents)
-		promptBuilder.WriteString("\n\n")
-	}
-
-	sessionService := session.InMemoryService()
-	createdSession, err := sessionService.Create(context.Background(), &session.CreateRequest{
-		AppName: "database_schema_agent",
-		UserID:  "user_123",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %v", err)
-	}
-
-	subRunner, err := runner.New(runner.Config{
-		Agent:          erdAgent,
-		AppName:        "database_schema_agent",
-		SessionService: sessionService,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create runner: %v", err)
-	}
-
-	userContent := &genai.Content{
-		Role: "user",
-		Parts: []*genai.Part{
-			{
-				Text: promptBuilder.String(),
-			},
-		},
-	}
-
-	eventsAndErrs := subRunner.Run(context.Background(), "user_123", createdSession.Session.ID(), userContent, agent.RunConfig{})
-	for _, err := range eventsAndErrs {
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	resp, err := sessionService.Get(context.Background(), &session.GetRequest{
-		AppName:   "database_schema_agent",
-		UserID:    "user_123",
-		SessionID: createdSession.Session.ID(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	state := resp.Session.State()
-	val, err := state.Get("erd_schema")
-	if err != nil {
-		return nil, fmt.Errorf("erd_schema key not found in state")
-	}
-
-	switch v := val.(type) {
-	case map[string]any:
-		return v, nil
-	case string:
-		var parsed map[string]any
-		if err := json.Unmarshal([]byte(v), &parsed); err != nil {
-			return nil, fmt.Errorf("failed to parse ERD schema: %w", err)
-		}
-		return parsed, nil
-	default:
-		raw, err := json.Marshal(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal ERD schema: %w", err)
-		}
-		var parsed map[string]any
-		if err := json.Unmarshal(raw, &parsed); err != nil {
-			return nil, fmt.Errorf("failed to parse ERD schema: %w", err)
-		}
-		return parsed, nil
-	}
 }
 
 func GenerateRichText(prompt string) ([]any, error) {
@@ -708,17 +409,6 @@ func GenerateRichText(prompt string) ([]any, error) {
 		return nil, fmt.Errorf("failed to create getFileContents tool: %v", err)
 	}
 
-	createDatabaseSchemaTool, err := functiontool.New(
-		functiontool.Config{
-			Name:        "createDatabaseSchema",
-			Description: "Create an ERD schema from file contents returned by getFileContents.",
-		},
-		executeCreateDatabaseSchema,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create createDatabaseSchema tool: %v", err)
-	}
-
 	richTextAgent, err := llmagent.New(llmagent.Config{
 		Name:         "rich_text_agent",
 		Model:        model,
@@ -726,7 +416,10 @@ func GenerateRichText(prompt string) ([]any, error) {
 		Instruction:  getRichTextInstruction(),
 		OutputSchema: getRichTextSchema(),
 		OutputKey:    "rich_text",
-		Tools:        []tool.Tool{fileContentsTool, createDatabaseSchemaTool},
+		Tools:        []tool.Tool{fileContentsTool},
+		GenerateContentConfig: &genai.GenerateContentConfig{
+			MaxOutputTokens: 16000,
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create agent: %v", err)

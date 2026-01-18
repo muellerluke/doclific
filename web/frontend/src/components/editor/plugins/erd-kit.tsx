@@ -1,5 +1,6 @@
 import { createPlatePlugin } from "platejs/react";
-import { ErdNode } from "@/components/ui/erd-node";
+import { lazy, Suspense } from "react";
+const ErdNode = lazy(() => import('@/components/ui/erd-node'));
 
 export const ERDType = 'ERD';
 
@@ -130,12 +131,18 @@ export interface ErdNodeType {
     [key: string]: any;
 }
 
+const ErdNodeSuspense = (props: any) => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <ErdNode {...props} />
+    </Suspense>
+)
+
 
 export const ERDPlugin = createPlatePlugin({
     key: ERDType,
     node: {
         isElement: true,
         isVoid: true,
-        component: ErdNode
+        component: ErdNodeSuspense
     }
 })
