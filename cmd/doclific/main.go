@@ -153,17 +153,6 @@ func maskAPIKey(key string) string {
 }
 
 func main() {
-	// Automatically check for updates before running any command
-	// Skip update check for the update command itself to avoid recursion
-	go func() {
-		if (len(os.Args) > 1 && os.Args[1] != "update") || len(os.Args) == 1 {
-			isLatest, current, latest, err := core.IsLatestVersion()
-			if err == nil && !isLatest {
-				fmt.Fprintf(os.Stderr, "📦 Update available: %s -> %s\n", current, latest)
-			}
-		}
-	}()
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 		os.Exit(1)

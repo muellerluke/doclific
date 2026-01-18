@@ -155,7 +155,7 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 
 					return {
 						id: crypto.randomUUID(),
-						type: 'edge',
+						type: 'default',
 						source: sourceTable.id,
 						sourceHandle: `col-${sourceColumn.id}-source-${sourceSide}`,
 						target: targetTable.id,

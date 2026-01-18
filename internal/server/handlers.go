@@ -11,6 +11,9 @@ import (
 
 // RegisterRoutes registers all API routes using REST conventions
 func RegisterRoutes(mux *http.ServeMux) {
+	// Health check and update routes
+	mux.HandleFunc("GET /api/update/check", handleUpdateCheck)
+
 	// Git routes
 	mux.HandleFunc("GET /api/git/repo-info", handleGitGetRepoInfo)
 
@@ -57,10 +60,10 @@ func handleGitGetRepoInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := map[string]interface{}{
-		"repositoryName":  repoName,
+		"repositoryName":   repoName,
 		"repositoryBranch": repositoryBranch,
-		"user":            user,
-		"userEmail":       userEmail,
+		"user":             user,
+		"userEmail":        userEmail,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -160,7 +163,7 @@ func handleDocsDeleteDoc(w http.ResponseWriter, r *http.Request) {
 
 func handleCodebaseGetFolderContents(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Query().Get("filePath")
-	
+
 	contents, err := core.GetFolderContents(filePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -202,7 +205,6 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 }
 
 // AI handlers
-
 func handleAIGenerateRichText(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Prompt string `json:"prompt"`
@@ -220,4 +222,27 @@ func handleAIGenerateRichText(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(richText)
+}
+
+// Update handlers
+func handleUpdateCheck(w http.ResponseWriter, r *http.Request) {
+	version, err := core.GetCurrentVersion()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	latestVersion, err := core.GetLatestVersion()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	result := map[string]interface{}{
+		"currentVersion": version,
+		"latestVersion":  latestVersion,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
