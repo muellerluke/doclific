@@ -147,7 +147,7 @@ function TableNode({ data, id }: { data: TableNodeData, id: string }) {
     };
 
     return (
-        <div className="bg-muted border rounded-md flex flex-col" key={id}>
+        <div className="bg-background dark:bg-muted border rounded-md flex flex-col" key={id}>
             {/* Title */}
             <div className="p-4 border-b">
                 {isEditingTitle ? (
