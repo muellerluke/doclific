@@ -165,6 +165,18 @@ if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
   echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
 fi
 
+
+# -----------------------------
+# Browser opener check (xdg-open)
+# -----------------------------
+if ! command -v xdg-open >/dev/null 2>&1; then
+  warn "xdg-open not found. Doclific won't be able to open a browser tab automatically."
+  info "To enable this:"
+  info "  - Install xdg-utils (e.g. 'sudo apt-get install -y xdg-utils' or equivalent)."
+  info "  - Ensure a default browser is configured for your system."
+  info "  - Verify by running: xdg-open https://example.com"
+fi
+
 # -----------------------------
 # Cleanup
 # -----------------------------
