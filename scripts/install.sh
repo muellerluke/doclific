@@ -170,7 +170,7 @@ fi
 # -----------------------------
 if [ "$OS" = "linux" ]; then
   if grep -qi "microsoft" /proc/version 2>/dev/null || \
-     grep -qi "microsoft" /proc/sys/kernel/osrelease 2>/dev/null; then
+    grep -qi "microsoft" /proc/sys/kernel/osrelease 2>/dev/null; then
     if ! command -v wslview >/dev/null 2>&1; then
       echo ""
       echo "⚠️  wslview not found. Doclific won't be able to open a browser tab automatically on WSL."
