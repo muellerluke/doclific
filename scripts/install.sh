@@ -187,6 +187,7 @@ if [ "$OS" = "linux" ]; then
       info "  - Ensure a default browser is configured for your system."
       info "  - Verify by running: xdg-open https://example.com"
     fi
+  fi
 fi
 
 # -----------------------------
