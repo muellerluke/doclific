@@ -166,16 +166,27 @@ if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
 fi
 
 # -----------------------------
-# WSL Compatibility
+# Browser opener check (xdg-open / wslview)
 # -----------------------------
 if [ "$OS" = "linux" ]; then
-  if ! command -v xdg-open >/dev/null 2>&1; then
-    info "xdg-open not found. Doclific won't be able to open a browser tab automatically."
-    info "To enable this:"
-    info "  - Install xdg-utils (e.g. 'sudo apt-get install -y xdg-utils' or equivalent)."
-    info "  - Ensure a default browser is configured for your system."
-    info "  - Verify by running: xdg-open https://example.com"
-  fi
+  if grep -qi "microsoft" /proc/version 2>/dev/null || \
+     grep -qi "microsoft" /proc/sys/kernel/osrelease 2>/dev/null; then
+    if ! command -v wslview >/dev/null 2>&1; then
+      echo ""
+      echo "⚠️  wslview not found. Doclific won't be able to open a browser tab automatically on WSL."
+      info "To enable this:"
+      info "  - Install wslu (e.g. 'sudo apt-get install -y wslu' or equivalent)."
+      info "  - Verify by running: wslview https://example.com"
+    fi
+  else
+    if ! command -v xdg-open >/dev/null 2>&1; then
+      echo ""
+      echo "⚠️  xdg-open not found. Doclific won't be able to open a browser tab automatically."
+      info "To enable this:"
+      info "  - Install xdg-utils (e.g. 'sudo apt-get install -y xdg-utils' or equivalent)."
+      info "  - Ensure a default browser is configured for your system."
+      info "  - Verify by running: xdg-open https://example.com"
+    fi
 fi
 
 # -----------------------------

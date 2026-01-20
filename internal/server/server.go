@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -68,7 +69,7 @@ func StartServer(port int) error {
 
 	addr := fmt.Sprintf(":%d", port)
 	url := fmt.Sprintf("http://localhost%s", addr)
-	
+
 	// Pretty server startup log
 	fmt.Println()
 	fmt.Println("╔═══════════════════════════════════════════════════════════╗")
@@ -107,9 +108,31 @@ func openBrowser(url string) error {
 	case "darwin":
 		cmd = exec.Command("open", url)
 	default: // linux and others
-		cmd = exec.Command("xdg-open", url)
+		if isWSL() {
+			cmd = exec.Command("wslview", url)
+		} else {
+			cmd = exec.Command("xdg-open", url)
+		}
 	}
 	return cmd.Start()
+}
+
+func isWSL() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+
+	version, err := os.ReadFile("/proc/version")
+	if err == nil && strings.Contains(strings.ToLower(string(version)), "microsoft") {
+		return true
+	}
+
+	osrelease, err := os.ReadFile("/proc/sys/kernel/osrelease")
+	if err == nil && strings.Contains(strings.ToLower(string(osrelease)), "microsoft") {
+		return true
+	}
+
+	return false
 }
 
 // findBuildDir finds the web/build directory using multiple strategies
@@ -181,4 +204,3 @@ func getProjectRoot() (string, error) {
 		dir = parent
 	}
 }
-
