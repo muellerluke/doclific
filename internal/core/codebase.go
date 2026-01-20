@@ -1,9 +1,11 @@
 package core
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	gitignore "github.com/sabhiram/go-gitignore"
@@ -11,10 +13,10 @@ import (
 
 // FileNode represents a file or directory in the file system
 type FileNode struct {
-	Path     string      `json:"path"`
-	Name     string      `json:"name"`
-	Type     string      `json:"type"` // "file" or "directory"
-	Children []FileNode  `json:"children,omitempty"`
+	Path     string     `json:"path"`
+	Name     string     `json:"name"`
+	Type     string     `json:"type"` // "file" or "directory"
+	Children []FileNode `json:"children,omitempty"`
 }
 
 // Create the doclific folder
@@ -89,9 +91,46 @@ func GetFileContents(filePath string) (string, error) {
 	return string(content), nil
 }
 
-// GetFlatFileList recursively scans a directory and returns a flat list of all file paths
+type FileMetadata struct {
+	Path    string   `json:"path"`
+	Ext     string   `json:"ext"`
+	Symbols []string `json:"symbols"`
+	Hints   []string `json:"hints"`
+}
+
+var (
+	// Universal declaration regex
+	declRegex = regexp.MustCompile(`\b(class|struct|interface|enum|type|model|entity)\s+([A-Za-z_][A-Za-z0-9_]*)`)
+
+	// Import-like lines (very loose on purpose)
+	importRegex = regexp.MustCompile(`^(import|from|using|require|\#include)\b`)
+
+	// Relationship / ERD signals
+	relationshipRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*(Id|ID|_id)\b`),
+		regexp.MustCompile(`\b(hasMany|belongsTo|manyToMany|oneToMany|references|manyToOne)\b`),
+		regexp.MustCompile(`\b(List<|Array<|\[\]|Set<)`),
+	}
+
+	// ORM / persistence keywords (substring match)
+	persistenceKeywords = []string{
+		"gorm", "prisma", "sequelize", "typeorm", "sqlalchemy",
+		"django", "activerecord", "ent", "knex", "mongoose",
+		"model", "entity", "schema", "table", "column", "drizzle",
+	}
+
+	// Header comments
+	commentRegex = regexp.MustCompile(`^(\/\/|#|\/\*|\*)\s?.+`)
+)
+
 // It respects .gitignore patterns and excludes .git directories
-func GetFlatFileList(dir string, fileList []string, baseDir string, ignoreInstance *gitignore.GitIgnore) ([]string, error) {
+func GetFileListAndMetadata(
+	dir string,
+	fileList []FileMetadata,
+	baseDir string,
+	ignoreInstance *gitignore.GitIgnore,
+) ([]FileMetadata, error) {
+
 	// Use current directory if dir is empty
 	if dir == "" {
 		var err error
@@ -106,16 +145,15 @@ func GetFlatFileList(dir string, fileList []string, baseDir string, ignoreInstan
 		baseDir = dir
 	}
 
-	// Load .gitignore on first call
+	// Load .gitignore once
 	if ignoreInstance == nil {
 		gitignorePath := filepath.Join(baseDir, ".gitignore")
 		var gitignoreContent string
-		if _, err := os.Stat(gitignorePath); err == nil {
-			content, err := os.ReadFile(gitignorePath)
-			if err == nil {
-				gitignoreContent = string(content)
-			}
+
+		if content, err := os.ReadFile(gitignorePath); err == nil {
+			gitignoreContent = string(content)
 		}
+
 		ignoreInstance = gitignore.CompileIgnoreLines(strings.Split(gitignoreContent, "\n")...)
 	}
 
@@ -126,46 +164,139 @@ func GetFlatFileList(dir string, fileList []string, baseDir string, ignoreInstan
 
 	for _, item := range items {
 		fullPath := filepath.Join(dir, item.Name())
+
 		relativePath, err := filepath.Rel(baseDir, fullPath)
 		if err != nil {
 			continue
 		}
 
-		// Normalize path separators for gitignore matching
-		relativePathNormalized := strings.ReplaceAll(relativePath, string(filepath.Separator), "/")
+		relativePath = strings.ReplaceAll(relativePath, string(filepath.Separator), "/")
 
-		// Check if path should be ignored
-		// For directories, also check with trailing slash to match patterns like "node_modules/"
-		shouldIgnore := ignoreInstance.MatchesPath(relativePathNormalized) ||
-			strings.HasPrefix(relativePathNormalized, ".git")
-		
+		shouldIgnore := ignoreInstance.MatchesPath(relativePath) ||
+			strings.HasPrefix(relativePath, ".git")
+
 		if !shouldIgnore && item.IsDir() {
-			// Check directory pattern with trailing slash
-			shouldIgnore = ignoreInstance.MatchesPath(relativePathNormalized + "/")
+			shouldIgnore = ignoreInstance.MatchesPath(relativePath + "/")
 		}
 
 		if shouldIgnore {
 			continue
 		}
 
-		info, err := item.Info()
-		if err != nil {
-			continue
-		}
-
-		if info.IsDir() {
-			// Include directory path itself with trailing slash
-			fileList = append(fileList, relativePathNormalized+"/")
-			// Recurse into the subdirectory
-			fileList, err = GetFlatFileList(fullPath, fileList, baseDir, ignoreInstance)
+		if item.IsDir() {
+			fileList, err = GetFileListAndMetadata(fullPath, fileList, baseDir, ignoreInstance)
 			if err != nil {
 				return nil, err
 			}
-		} else {
-			fileList = append(fileList, relativePathNormalized)
+			continue
 		}
+
+		ext := filepath.Ext(item.Name())
+		if ext == "" {
+			continue
+		}
+
+		// Skip obvious binary assets
+		switch ext {
+		case ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
+			".pdf", ".zip", ".tar", ".gz", ".exe", ".bin":
+			continue
+		}
+
+		symbols, hints := extractMetadataFromFile(fullPath)
+
+		fileList = append(fileList, FileMetadata{
+			Path:    relativePath,
+			Ext:     ext,
+			Symbols: symbols,
+			Hints:   hints,
+		})
 	}
 
 	return fileList, nil
 }
 
+func extractMetadataFromFile(path string) (symbols []string, hints []string) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	const maxLines = 120
+	lineCount := 0
+
+	symbolSet := map[string]struct{}{}
+	hintSet := map[string]struct{}{}
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		lineCount++
+
+		if line == "" {
+			if lineCount > 20 {
+				break
+			}
+			continue
+		}
+
+		// Header comments (only at top)
+		if lineCount <= 10 && commentRegex.MatchString(line) {
+			hintSet[line] = struct{}{}
+			continue
+		}
+
+		// Declarations → symbols + hints
+		if matches := declRegex.FindStringSubmatch(line); len(matches) == 3 {
+			symbolSet[matches[2]] = struct{}{}
+			hintSet[line] = struct{}{}
+		}
+
+		// Imports
+		if importRegex.MatchString(line) {
+			hintSet[line] = struct{}{}
+		}
+
+		// Relationship signals
+		for _, re := range relationshipRegexes {
+			if re.MatchString(line) {
+				hintSet[line] = struct{}{}
+				break
+			}
+		}
+
+		// Persistence keywords
+		lower := strings.ToLower(line)
+		for _, kw := range persistenceKeywords {
+			if strings.Contains(lower, kw) {
+				hintSet[line] = struct{}{}
+				break
+			}
+		}
+
+		if lineCount >= maxLines {
+			break
+		}
+	}
+
+	// Convert sets → slices
+	for s := range symbolSet {
+		symbols = append(symbols, s)
+	}
+	for h := range hintSet {
+		// Cap hint length to avoid token blowups
+		if len(h) > 300 {
+			h = h[:300]
+		}
+		hints = append(hints, h)
+	}
+
+	// Hard cap hints
+	if len(hints) > 20 {
+		hints = hints[:20]
+	}
+
+	return symbols, hints
+}

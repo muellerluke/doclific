@@ -1,46 +1,41 @@
-# Project Structure
+# Project Structure Documentation
 
-Doclific is organized as a monorepo with a Go backend and a React/TypeScript frontend. It follows standard Go project conventions for the CLI and internal logic, while housing the web interface in a dedicated directory.
+Doclific is a full-stack documentation tool designed to run locally on a user's machine. It consists of a Go-based backend providing a CLI and a REST API, and a React-based frontend featuring a Notion-like rich text editor built with PlateJS.
 
-## Top-Level Directories
+## Backend (Go)
 
-* `cmd/`: Contains the entry point for the Doclific CLI application.
-* `internal/`: Private library code, including the web server and core business logic.
-* `web/`: The frontend React application built with Vite.
-* `doclific/`: The default directory where user-created documentation is stored as MDX files.
-* `scripts/`: Shell scripts for installation and release management.
+The backend is located in the root and the `internal/` directory. It manages the application lifecycle, local file system operations, and integrations with AI and Git.
 
-## Backend Architecture (internal/)
-
-The backend is divided into three main packages that handle configuration, business logic, and API delivery.
-
-### Core Logic
-
-The core logic is found in `internal/core`, which manages interactions with the file system and external services.
-
-<CodebaseSnippet filePath="internal/core/docs.go" lineStart="12" lineEnd="24">
-
-</CodebaseSnippet>
-
-* `docs.go`: Handles reading, writing, and scanning the documentation directory.
-* `codebase.go`: Provides utilities for exploring the local file system and reading source code.
-* `git.go`: Integrates with local Git configuration to retrieve repository and user information.
-* `ai.go`: Manages AI-assisted content generation using various providers.
-
-### Server and API
-
-The server package defines the HTTP API that the frontend communicates with.
+* `cmd/doclific/main.go`: The entry point for the CLI. It uses the Cobra library to provide commands like `init`, `set`, and `update`. By default, it starts the web server.
+* `internal/core/`: Contains the business logic. `docs.go` handles document CRUD, `ai.go` manages AI generation, and `codebase.go` scans the local file system for snippets.
+* `internal/server/`: Implements the HTTP server and API routes using standard library conventions.
+* `internal/config/`: Manages application-wide configuration (API keys, ports, etc.).
 
 <CodebaseSnippet filePath="internal/server/handlers.go" lineStart="13" lineEnd="35">
 
 </CodebaseSnippet>
 
-## Frontend Architecture (web/)
+## Frontend (React + PlateJS)
 
-The frontend is a modern React application using Tailwind CSS and Radix UI components. It is structured to facilitate complex editor features.
+The frontend is a modern web application built with React, Vite, and Tailwind CSS. It leverages the PlateJS framework to provide a highly customizable and extensible rich text editor.
 
-* `src/api/`: TypeScript clients for interacting with the Go backend.
-* `src/components/editor/`: A feature-rich block-based editor with custom plugins.
-* `src/pages/`: High-level view components like the main editor layout.
+* `web/frontend/src/components/editor/`: Houses the core editor configuration and plugin system. `editor-kit.tsx` aggregates all enabled plugins, including custom ones like ERD and Codebase Snippets.
+* `web/frontend/src/components/ui/`: Contains UI components based on Shadcn/ui and custom editor node implementations (e.g., `erd-node.tsx`, `codebase-snippet-node.tsx`).
+* `web/frontend/src/api/`: TypeScript clients for communicating with the Go backend API.
+
+<CodebaseSnippet filePath="web/frontend/src/components/editor/editor-kit.tsx" lineStart="42" lineEnd="96">
+
+</CodebaseSnippet>
+
+## Data Management
+
+Documentation content is stored locally in the `doclific/` folder within the project root. Each document is contained in its own subdirectory named with a UUID, containing:
+
+* `content.mdx`: The actual MDX content of the document.
+* `config.json`: Metadata for the document, such as the title and sidebar icon.
+
+<CodebaseSnippet filePath="internal/core/docs.go" lineStart="12" lineEnd="24">
+
+</CodebaseSnippet>
 
 ​

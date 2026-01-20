@@ -18,37 +18,22 @@ import (
 	"doclific/internal/config"
 )
 
-func getRichTextInstruction() string {
-	flatFileList, err := GetFlatFileList("", nil, "", nil)
+func getFileContext() string {
+	fileList, err := GetFileListAndMetadata("", nil, "", nil)
 	if err != nil {
 		return ""
 	}
 
-	projectStructure := ""
-	for _, filePath := range flatFileList {
-		projectStructure += fmt.Sprintf("- %s\n", filePath)
+	// convert fileList to JSON
+	fileListJSON, err := json.MarshalIndent(fileList, "", "  ")
+	if err != nil {
+		return ""
 	}
 
-	return fmt.Sprintf(`
-When writing documentation:
-1. Explain concepts using "TEXT" nodes. Use the textType property to specify if it should be a p, h1, h2, or h3.
-2. Reference implementation using "CODEBASE_SNIPPET" nodes
-3. Use "LIST" nodes only for summaries. Use the listType property to specify if it should be a numbered or bulleted list.
-4. Use "ERD" nodes to show the database schema as an entity relationship diagram only if the user requests an ERD or database diagram
+	// wrap in code block to prevent parsing errors
+	jsonBlock := fmt.Sprintf("```\n%s\n```", string(fileListJSON))
 
-When referencing file names in the LIST node or TEXT node, ensure that you split the statement into multiple parts, making the file name have code: true and the remaining text have code: false.
-
-For the ERD, ensure that you get ALL of the files containing models for the database schema. There should be no omissions of tables or columns.
-They will likely be all in the same directory.
-Once you find the correct directory through trial and error, use the getFileContents tool to get all the file contents for all database models.
-Ensure that you use the actual column name, not the alias or key used in the code, for the table column name and the relationships.
-For the ERD, before generating the rich_text output, you must first create a hidden list of all database entities found across ALL provided files. 
-Ensure every struct or model definition is accounted for. Once the list is complete, map every single one of those entities to the ERD structure.
-
-If you need to show code, DO NOT paste it — reference it.
-
-The project structure is: %s
-`, projectStructure)
+	return fmt.Sprintf("Here is the project structure: %s", jsonBlock)
 }
 
 var richTextJSONSchema = `
@@ -453,10 +438,27 @@ func GenerateRichText(prompt string) ([]any, error) {
 	}
 
 	richTextAgent, err := llmagent.New(llmagent.Config{
-		Name:         "rich_text_agent",
-		Model:        model,
-		Description:  "You are a helpful assistant that writes documentation in rich text format.",
-		Instruction:  getRichTextInstruction(),
+		Name:        "rich_text_agent",
+		Model:       model,
+		Description: "You are a helpful assistant that writes documentation in rich text format.",
+		Instruction: `
+When writing documentation:
+1. Explain concepts using "TEXT" nodes. Use the textType property to specify if it should be a p, h1, h2, or h3.
+2. Reference implementation using "CODEBASE_SNIPPET" nodes
+3. Use "LIST" nodes only for summaries. Use the listType property to specify if it should be a numbered or bulleted list.
+4. Use "ERD" nodes to show the database schema as an entity relationship diagram only if the user requests an ERD or database diagram
+
+When referencing file names in the LIST node or TEXT node, ensure that you split the statement into multiple parts, making the file name have code: true and the remaining text have code: false.
+
+For the ERD, ensure that you get ALL of the files containing models for the database schema. There should be no omissions of tables or columns.
+They will likely be all in the same directory. Use the project structure JSON as hints to find the right files and the directory that contains them all.
+Once you find the correct directory, use the getFileContents tool to get all the file contents for all database models.
+Ensure that you use the actual column name, not the alias or key used in the code, for the table column name and the relationships.
+For the ERD, before generating the rich_text output, you must first create a hidden list of all database entities found across ALL provided files. 
+Ensure every struct or model definition is accounted for. Once the list is complete, map every single one of those entities to the ERD structure.
+
+If you need to show code, DO NOT paste it — reference it.
+`,
 		OutputSchema: getRichTextSchema(),
 		OutputKey:    "rich_text",
 		Tools:        []tool.Tool{fileContentsTool},
@@ -490,6 +492,9 @@ func GenerateRichText(prompt string) ([]any, error) {
 	userContent := &genai.Content{
 		Role: "user",
 		Parts: []*genai.Part{
+			{
+				Text: getFileContext(),
+			},
 			{
 				Text: prompt,
 			},
