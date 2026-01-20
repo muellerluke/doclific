@@ -402,7 +402,7 @@ export function AppSidebar() {
     return (
         <Sidebar variant="inset">
             <SidebarHeader>
-                <span className="text-2xl font-extrabold italic" style={{ fontFamily: 'Google Sans Code' }}>Doclific</span>
+                <span className="text-2xl font-extrabold italic">Doclific</span>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
