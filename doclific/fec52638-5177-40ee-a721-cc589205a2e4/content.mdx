@@ -1,41 +1,47 @@
 # Project Structure Documentation
 
-Doclific is a full-stack documentation tool designed to run locally on a user's machine. It consists of a Go-based backend providing a CLI and a REST API, and a React-based frontend featuring a Notion-like rich text editor built with PlateJS.
+Doclific is a full-stack documentation tool built with a Go backend and a React frontend. It allows users to manage project documentation using a modern rich text editor with AI-powered features and deep codebase integration.
 
 ## Backend (Go)
 
-The backend is located in the root and the `internal/` directory. It manages the application lifecycle, local file system operations, and integrations with AI and Git.
+The backend serves as a CLI tool and an API server. It handles file operations, AI integrations, and interacts with the local file system to scan codebases or manage documentation files.
 
-* `cmd/doclific/main.go`: The entry point for the CLI. It uses the Cobra library to provide commands like `init`, `set`, and `update`. By default, it starts the web server.
-* `internal/core/`: Contains the business logic. `docs.go` handles document CRUD, `ai.go` manages AI generation, and `codebase.go` scans the local file system for snippets.
-* `internal/server/`: Implements the HTTP server and API routes using standard library conventions.
-* `internal/config/`: Manages application-wide configuration (API keys, ports, etc.).
+* `cmd/doclific/main.go`: The entry point for the CLI application. It uses the Cobra library to provide commands like `init`, `set`, `get`, and starts the web server.
+* `internal/config/`: Manages application-wide configuration, including API keys for AI providers.
+* `internal/core/`: Contains the primary business logic, including document CRUD operations, codebase scanning, and Git integration.
+* `internal/server/`: Implements the HTTP server and RESTful API endpoints used by the frontend.
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="13" lineEnd="35">
-
-</CodebaseSnippet>
-
-## Frontend (React + PlateJS)
-
-The frontend is a modern web application built with React, Vite, and Tailwind CSS. It leverages the PlateJS framework to provide a highly customizable and extensible rich text editor.
-
-* `web/frontend/src/components/editor/`: Houses the core editor configuration and plugin system. `editor-kit.tsx` aggregates all enabled plugins, including custom ones like ERD and Codebase Snippets.
-* `web/frontend/src/components/ui/`: Contains UI components based on Shadcn/ui and custom editor node implementations (e.g., `erd-node.tsx`, `codebase-snippet-node.tsx`).
-* `web/frontend/src/api/`: TypeScript clients for communicating with the Go backend API.
-
-<CodebaseSnippet filePath="web/frontend/src/components/editor/editor-kit.tsx" lineStart="42" lineEnd="96">
+<CodebaseSnippet filePath="cmd/doclific/main.go" lineStart="14" lineEnd="41">
 
 </CodebaseSnippet>
 
-## Data Management
+## Frontend (React)
 
-Documentation content is stored locally in the `doclific/` folder within the project root. Each document is contained in its own subdirectory named with a UUID, containing:
+The frontend is a React application built with Vite and Tailwind CSS. It features a sophisticated rich text editor powered by Plate.js, customized with plugins for specialized documentation needs.
 
-* `content.mdx`: The actual MDX content of the document.
-* `config.json`: Metadata for the document, such as the title and sidebar icon.
+* `web/frontend/src/App.tsx`: The main application component handling routing and global providers.
+* `web/frontend/src/components/editor/`: Configuration and plugin definitions for the Plate.js rich text editor.
+* `web/frontend/src/components/ui/`: Reusable UI components and specialized editor nodes (e.g., ERD nodes, Codebase snippets).
+* `web/frontend/src/api/`: API client functions for communicating with the Go backend.
+
+<CodebaseSnippet filePath="web/frontend/src/App.tsx" lineStart="68" lineEnd="81">
+
+</CodebaseSnippet>
+
+## Documentation Storage
+
+Documentation is stored locally in a directory named `doclific/`. Each document is organized into a subfolder named with a UUID, containing both metadata and content.
+
+* `config.json`: Stores metadata such as the document title and icon.
+* `content.mdx`: Contains the documentation content in MDX format.
 
 <CodebaseSnippet filePath="internal/core/docs.go" lineStart="12" lineEnd="24">
 
 </CodebaseSnippet>
+
+## Scripts and Utilities
+
+* `scripts/install.sh`: Shell script for installing the Doclific binary.
+* `scripts/release.sh`: Script used for building and releasing new versions of the application.
 
 ​
