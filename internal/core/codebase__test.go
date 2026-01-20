@@ -223,10 +223,10 @@ func TestGetFlatFileList(t *testing.T) {
 	gitConfig := filepath.Join(gitDir, "config")
 	os.WriteFile(gitConfig, []byte("git config"), 0644)
 
-	// Test GetFlatFileList
-	fileList, err := GetFlatFileList("", nil, "", nil)
+	// Test GetFileListAndMetadata
+	fileList, err := GetFileListAndMetadata("", nil, "", nil)
 	if err != nil {
-		t.Fatalf("GetFlatFileList() error = %v", err)
+		t.Fatalf("GetFileListAndMetadata() error = %v", err)
 	}
 
 	// Verify files are in the list
@@ -234,54 +234,52 @@ func TestGetFlatFileList(t *testing.T) {
 	foundFile2 := false
 	foundFile3 := false
 	foundFile4 := false
-	foundDir1 := false
-	foundDir2 := false
 	foundGit := false
 
 	for _, file := range fileList {
-		if strings.Contains(file, "file1.txt") {
+		if strings.Contains(file.Path, "file1.txt") {
 			foundFile1 = true
+			if file.Ext != ".txt" {
+				t.Errorf("GetFileListAndMetadata() file1.txt Ext = %q, want %q", file.Ext, ".txt")
+			}
 		}
-		if strings.Contains(file, "file2.go") {
+		if strings.Contains(file.Path, "file2.go") {
 			foundFile2 = true
+			if file.Ext != ".go" {
+				t.Errorf("GetFileListAndMetadata() file2.go Ext = %q, want %q", file.Ext, ".go")
+			}
 		}
-		if strings.Contains(file, "dir1/file3.txt") {
+		if strings.Contains(file.Path, "dir1/file3.txt") {
 			foundFile3 = true
+			if file.Ext != ".txt" {
+				t.Errorf("GetFileListAndMetadata() file3.txt Ext = %q, want %q", file.Ext, ".txt")
+			}
 		}
-		if strings.Contains(file, "dir1/dir2/file4.txt") {
+		if strings.Contains(file.Path, "dir1/dir2/file4.txt") {
 			foundFile4 = true
+			if file.Ext != ".txt" {
+				t.Errorf("GetFileListAndMetadata() file4.txt Ext = %q, want %q", file.Ext, ".txt")
+			}
 		}
-		if strings.Contains(file, "dir1/") && strings.HasSuffix(file, "/") {
-			foundDir1 = true
-		}
-		if strings.Contains(file, "dir1/dir2/") && strings.HasSuffix(file, "/") {
-			foundDir2 = true
-		}
-		if strings.Contains(file, ".git") {
+		if strings.Contains(file.Path, ".git") {
 			foundGit = true
 		}
 	}
 
 	if !foundFile1 {
-		t.Error("GetFlatFileList() did not find file1.txt")
+		t.Error("GetFileListAndMetadata() did not find file1.txt")
 	}
 	if !foundFile2 {
-		t.Error("GetFlatFileList() did not find file2.go")
+		t.Error("GetFileListAndMetadata() did not find file2.go")
 	}
 	if !foundFile3 {
-		t.Error("GetFlatFileList() did not find dir1/file3.txt")
+		t.Error("GetFileListAndMetadata() did not find dir1/file3.txt")
 	}
 	if !foundFile4 {
-		t.Error("GetFlatFileList() did not find dir1/dir2/file4.txt")
-	}
-	if !foundDir1 {
-		t.Error("GetFlatFileList() did not find dir1/ directory")
-	}
-	if !foundDir2 {
-		t.Error("GetFlatFileList() did not find dir1/dir2/ directory")
+		t.Error("GetFileListAndMetadata() did not find dir1/dir2/file4.txt")
 	}
 	if foundGit {
-		t.Error("GetFlatFileList() should not include .git directory")
+		t.Error("GetFileListAndMetadata() should not include .git directory")
 	}
 }
 
@@ -320,10 +318,10 @@ func TestGetFlatFileListWithGitignore(t *testing.T) {
 	normalFile := filepath.Join(tmpDir, "normal.txt")
 	os.WriteFile(normalFile, []byte("normal content"), 0644)
 
-	// Test GetFlatFileList with gitignore
-	fileList, err := GetFlatFileList("", nil, "", nil)
+	// Test GetFileListAndMetadata with gitignore
+	fileList, err := GetFileListAndMetadata("", nil, "", nil)
 	if err != nil {
-		t.Fatalf("GetFlatFileList() error = %v", err)
+		t.Fatalf("GetFileListAndMetadata() error = %v", err)
 	}
 
 	// Verify ignored files are not in the list
@@ -333,31 +331,31 @@ func TestGetFlatFileListWithGitignore(t *testing.T) {
 	foundNormal := false
 
 	for _, file := range fileList {
-		if strings.Contains(file, "app.log") {
+		if strings.Contains(file.Path, "app.log") {
 			foundLog = true
 		}
-		if strings.Contains(file, "temp.tmp") {
+		if strings.Contains(file.Path, "temp.tmp") {
 			foundTmp = true
 		}
-		if strings.Contains(file, "node_modules") {
+		if strings.Contains(file.Path, "node_modules") {
 			foundNodeModules = true
 		}
-		if strings.Contains(file, "normal.txt") {
+		if strings.Contains(file.Path, "normal.txt") {
 			foundNormal = true
 		}
 	}
 
 	if foundLog {
-		t.Error("GetFlatFileList() should ignore *.log files")
+		t.Error("GetFileListAndMetadata() should ignore *.log files")
 	}
 	if foundTmp {
-		t.Error("GetFlatFileList() should ignore *.tmp files")
+		t.Error("GetFileListAndMetadata() should ignore *.tmp files")
 	}
 	if foundNodeModules {
-		t.Error("GetFlatFileList() should ignore node_modules/ directory")
+		t.Error("GetFileListAndMetadata() should ignore node_modules/ directory")
 	}
 	if !foundNormal {
-		t.Error("GetFlatFileList() should include normal.txt")
+		t.Error("GetFileListAndMetadata() should include normal.txt")
 	}
 }
 
@@ -380,25 +378,28 @@ func TestGetFlatFileListWithSubdirectory(t *testing.T) {
 	subFile := filepath.Join(subDir, "subfile.txt")
 	os.WriteFile(subFile, []byte("content"), 0644)
 
-	// Test GetFlatFileList with specific directory
-	fileList, err := GetFlatFileList(subDir, nil, tmpDir, nil)
+	// Test GetFileListAndMetadata with specific directory
+	fileList, err := GetFileListAndMetadata(subDir, nil, tmpDir, nil)
 	if err != nil {
-		t.Fatalf("GetFlatFileList() error = %v", err)
+		t.Fatalf("GetFileListAndMetadata() error = %v", err)
 	}
 
 	// Verify subdirectory file is in the list with correct relative path
 	foundSubFile := false
 	for _, file := range fileList {
-		if strings.Contains(file, "subfile.txt") {
+		if strings.Contains(file.Path, "subfile.txt") {
 			foundSubFile = true
 			// Path should be relative to baseDir (tmpDir)
-			if !strings.Contains(file, "subdir/subfile.txt") {
-				t.Errorf("GetFlatFileList() path = %q, should contain subdir/subfile.txt", file)
+			if !strings.Contains(file.Path, "subdir/subfile.txt") {
+				t.Errorf("GetFileListAndMetadata() path = %q, should contain subdir/subfile.txt", file.Path)
+			}
+			if file.Ext != ".txt" {
+				t.Errorf("GetFileListAndMetadata() Ext = %q, want %q", file.Ext, ".txt")
 			}
 		}
 	}
 
 	if !foundSubFile {
-		t.Error("GetFlatFileList() did not find subfile.txt")
+		t.Error("GetFileListAndMetadata() did not find subfile.txt")
 	}
 }
