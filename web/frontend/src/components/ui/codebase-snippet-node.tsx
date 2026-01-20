@@ -8,7 +8,7 @@ import { Copy, Settings } from 'lucide-react';
 import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
-import { getFileContents } from '@/api/codebase';
+import { getFileContents, getPrefix } from '@/api/codebase';
 
 // Singleton highlighter cache
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -40,6 +40,13 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
     const [highlightedCode, setHighlightedCode] = useState<string>('');
     const [fileSelectorOpen, setFileSelectorOpen] = useState(false);
+
+    const prefixQuery = useQuery({
+        queryKey: ["codebase", "prefix"],
+        queryFn: () => getPrefix(),
+        enabled: false,
+        staleTime: Infinity,
+    })
 
     const fileContents = useQuery({
         queryKey: ["codebase", "get-file-contents", element.filePath],
@@ -143,7 +150,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         <div contentEditable={false} {...attributes} className="codebase-snippet my-4 rounded-lg border overflow-hidden">
             <div className="bg-muted px-4 py-2 border-b flex justify-between items-center">
                 <div className='flex items-center gap-2'>
-                    <a href={`vscode://file/${fileContents.data?.fullPath || ''}:${element.lineStart}`}>
+                    <a href={`${prefixQuery.data || 'vscode'}://file/${fileContents.data?.fullPath || ''}:${element.lineStart}`}>
                         <p className="text-sm font-medium text-muted-foreground">{element.filePath}</p>
                     </a>
                     <button

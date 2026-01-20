@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { checkUpdate } from "./api/update"
 import { useEffect } from "react"
 import { NoDocSelected } from "./pages/no-doc-selected"
+import { getPrefix } from "./api/codebase"
 
 /**
  * Checks if the current version is newer than the latest version
@@ -44,6 +45,13 @@ function App() {
     queryKey: ["update", "check"],
     queryFn: () => checkUpdate(),
     retry: false,
+  })
+
+  useQuery({
+    queryKey: ["codebase", "prefix"],
+    queryFn: () => getPrefix(),
+    enabled: true,
+    retry: false
   })
 
   useEffect(() => {

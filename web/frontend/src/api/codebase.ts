@@ -63,3 +63,26 @@ export async function getFileContents(filePath: string): Promise<FileContentsRes
 
 	return response.json();
 }
+
+/**
+ * Get the deeplink prefix for codebase snippets
+ * @returns Promise resolving to the prefix
+ */
+export async function getPrefix(): Promise<string> {
+	const url = new URL(`${API_BASE_URL}/codebase/prefix`);
+
+	const response = await fetch(url.toString(), {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		throw new Error(`Failed to get prefix: ${errorText}`);
+	}
+
+	const result = await response.json();
+	return result.prefix;
+}

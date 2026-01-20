@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"doclific/internal/config"
 	"doclific/internal/core"
 )
 
@@ -27,6 +28,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	// Codebase routes
 	mux.HandleFunc("GET /api/codebase/folder", handleCodebaseGetFolderContents)
 	mux.HandleFunc("GET /api/codebase/file", handleCodebaseGetFileContents)
+	mux.HandleFunc("GET /api/codebase/prefix", handleCodebaseGetPrefix)
 
 	// AI routes
 	mux.HandleFunc("POST /api/ai/generate-rich-text", handleAIGenerateRichText)
@@ -198,6 +200,21 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 	result := map[string]interface{}{
 		"contents": contents,
 		"fullPath": fullPath,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func handleCodebaseGetPrefix(w http.ResponseWriter, r *http.Request) {
+	prefix, err := config.GetConfigValue("DEEPLINK_PREFIX")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	result := map[string]interface{}{
+		"prefix": prefix,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -31,10 +31,12 @@ func getRichTextInstruction() string {
 
 	return fmt.Sprintf(`
 When writing documentation:
-1. Explain concepts using "text" nodes
-2. Reference implementation using "codebase snippet" nodes
-3. Use "list" nodes only for summaries
-4. Use "erd" nodes to show the database schema as an entity relationship diagram only if the user requests an ERD or database diagram
+1. Explain concepts using "TEXT" nodes. Use the textType property to specify if it should be a p, h1, h2, or h3.
+2. Reference implementation using "CODEBASE_SNIPPET" nodes
+3. Use "LIST" nodes only for summaries. Use the listType property to specify if it should be a numbered or bulleted list.
+4. Use "ERD" nodes to show the database schema as an entity relationship diagram only if the user requests an ERD or database diagram
+
+When referencing file names in the LIST node or TEXT node, ensure that you split the statement into multiple parts, making the file name have code: true and the remaining text have code: false.
 
 For the ERD, ensure that you get ALL of the files containing models for the database schema. There should be no omissions of tables or columns.
 They will likely be all in the same directory.
@@ -60,9 +62,9 @@ var richTextJSONSchema = `
         "properties": {
           "nodeType": {
             "type": "string",
-            "const": "text"
+            "const": "TEXT"
           },
-          "type": {
+          "textType": {
             "type": "string",
             "enum": [
               "p",
@@ -71,14 +73,30 @@ var richTextJSONSchema = `
               "h3"
             ]
           },
-          "text": {
-            "type": "string"
+          "textPieces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "text",
+                "code"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "nodeType",
-          "type",
-          "text"
+          "textType",
+          "textPieces"
         ],
         "additionalProperties": false
       },
@@ -87,7 +105,7 @@ var richTextJSONSchema = `
         "properties": {
           "nodeType": {
             "type": "string",
-            "const": "codebase snippet"
+            "const": "CODEBASE_SNIPPET"
           },
           "filePath": {
             "type": "string"
@@ -112,26 +130,51 @@ var richTextJSONSchema = `
         "properties": {
           "nodeType": {
             "type": "string",
-            "const": "list"
+            "const": "LIST"
           },
-          "type": {
+          "listType": {
             "type": "string",
             "enum": [
               "numbered",
               "bulleted"
             ]
           },
-          "items": {
+          "listItems": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "object",
+              "properties": {
+                "textPieces": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      },
+                      "code": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "code"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "textPieces"
+              ],
+              "additionalProperties": false
             }
           }
         },
         "required": [
           "nodeType",
-          "type",
-          "items"
+          "listType",
+          "listItems"
         ],
         "additionalProperties": false
       },
@@ -140,7 +183,7 @@ var richTextJSONSchema = `
         "properties": {
           "nodeType": {
             "type": "string",
-            "const": "erd"
+            "const": "ERD"
           },
           "tables": {
             "type": "array",
@@ -495,15 +538,16 @@ func GenerateRichText(prompt string) ([]any, error) {
 
 // Define a struct that matches your "Superset" schema
 type RichTextNode struct {
-	NodeType      string   `json:"nodeType"`
-	Type          string   `json:"type,omitempty"`
-	Text          string   `json:"text,omitempty"`
-	FilePath      string   `json:"filePath,omitempty"`
-	LineStart     int      `json:"lineStart,omitempty"`
-	LineEnd       int      `json:"lineEnd,omitempty"`
-	Items         []string `json:"items,omitempty"`
-	Tables        []any    `json:"tables,omitempty"`
-	Relationships []any    `json:"relationships,omitempty"`
+	NodeType      string `json:"nodeType"`
+	TextType      string `json:"textType,omitempty"`
+	ListType      string `json:"listType,omitempty"`
+	TextPieces    []any  `json:"textPieces,omitempty"`
+	FilePath      string `json:"filePath,omitempty"`
+	LineStart     int    `json:"lineStart,omitempty"`
+	LineEnd       int    `json:"lineEnd,omitempty"`
+	ListItems     []any  `json:"listItems,omitempty"`
+	Tables        []any  `json:"tables,omitempty"`
+	Relationships []any  `json:"relationships,omitempty"`
 }
 
 func ExtractNodes(val any) ([]RichTextNode, error) {

@@ -37,7 +37,7 @@ export default function RichTextEditor(
         previousMarkdown.current = serialized;
         onUpdate(serialized);
       }
-    }, 500);
+    }, 750);
     return () => clearInterval(interval);
   }, [onUpdate, editor]);
 

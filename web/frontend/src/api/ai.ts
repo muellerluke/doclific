@@ -11,13 +11,22 @@ export interface GenerateRichTextRequest {
 }
 
 export interface RichTextNode {
-	nodeType: 'text' | 'codebase_snippet' | 'list' | 'erd';
-	type?: 'p' | 'h1' | 'h2' | 'h3' | 'numbered' | 'bulleted';
-	text?: string;
+	nodeType: 'TEXT' | 'CODEBASE_SNIPPET' | 'LIST' | 'ERD';
+	textType?: 'p' | 'h1' | 'h2' | 'h3';
+	listType?: 'numbered' | 'bulleted';
+	textPieces?: {
+		text: string;
+		code: boolean;
+	}[];
 	filePath?: string;
 	lineStart?: number;
 	lineEnd?: number;
-	items?: string[];
+	listItems?: {
+		textPieces: {
+			text: string;
+			code: boolean;
+		}[];
+	}[];
 	tables?: {
 		name: string;
 		columns: {
@@ -46,16 +55,16 @@ export interface RichTextNode {
  */
 function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 	return nodes.flatMap((node): any[] => {
-		switch (node.nodeType) {
-			case 'text':
+		switch (node.nodeType?.toUpperCase()) {
+			case 'TEXT':
 				return [
 					{
-						type: node.type || 'p',
-						children: [{ text: node.text || '' }],
+						type: node.textType || 'p',
+						children: node.textPieces,
 					},
 				];
 
-			case 'codebase_snippet':
+			case 'CODEBASE_SNIPPET':
 				return [
 					{
 						type: 'CodebaseSnippet',
@@ -65,17 +74,17 @@ function transformRichTextNodes(nodes: RichTextNode[]): any[] {
 						children: [{ text: '' }],
 					},
 				];
-			case 'list':
+			case 'LIST':
 				// Convert list items to paragraph nodes with list properties
 				return (
-					node.items?.map((item) => ({
+					node.listItems?.map((item) => ({
 						type: 'p',
-						children: [{ text: item }],
+						children: item.textPieces,
 						indent: 1,
-						listStyleType: node.type === 'numbered' ? 'decimal' : 'disc',
+						listStyleType: node.listType === 'numbered' ? 'decimal' : 'disc',
 					})) || []
 				);
-			case 'erd': {
+			case 'ERD': {
 				const tables = node.tables!.map((table) => ({
 					id: crypto.randomUUID(),
 					type: 'tableNode',
