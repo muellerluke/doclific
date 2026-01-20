@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from './spinner';
 import { generateRichText } from '@/api/ai';
+import { toast } from 'sonner';
 
 export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>) {
     const editor = useEditorRef();
@@ -43,11 +44,10 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
 
             const currentPath = currentBlock[1];
             // Store the path where we'll insert (after current block)
-            const insertPath = [currentPath[0] + 1];
-            editor.setOption(CustomAIPlugin, 'insertPath', insertPath);
+            editor.setOption(CustomAIPlugin, 'insertPath', currentPath);
 
             editor.tf.insertNodes(nodes, {
-                at: insertPath,
+                at: currentPath,
             });
 
             // Store pending nodes and switch to accept/reject mode
@@ -55,10 +55,11 @@ export function AIPromptElement(props: PlateElementProps<TComboboxInputElement>)
             editor.setOption(CustomAIPlugin, 'status', 'completed');
             setPrompt('');
         } catch (error) {
+            toast.error(`Failed to generate rich text`);
             console.error('AI generation error:', error);
             editor.setOption(CustomAIPlugin, 'status', 'error');
         } finally {
-            setIsSubmitting(false);
+            editor.getApi(CustomAIPlugin).aiChat.hide(editor);
         }
     };
 
