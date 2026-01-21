@@ -401,8 +401,10 @@ export function AppSidebar() {
 
     return (
         <Sidebar variant="inset">
-            <SidebarHeader>
-                <span className="text-2xl font-extrabold italic">Doclific</span>
+            <SidebarHeader className="flex flex-row items-center gap-2">
+                <img src="/transparent-dark-logo.svg" alt="Doclific" className="size-8 dark:hidden" />
+                <img src="/transparent-logo.svg" alt="Doclific" className="size-8 hidden dark:block" />
+                <span className="text-2xl font-extrabold">Doclific</span>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
