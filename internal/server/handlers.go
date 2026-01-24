@@ -24,6 +24,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/docs/doc", handleDocsUpdateDoc)
 	mux.HandleFunc("POST /api/docs", handleDocsCreateDoc)
 	mux.HandleFunc("DELETE /api/docs/doc", handleDocsDeleteDoc)
+	mux.HandleFunc("PUT /api/docs/order", handleDocsUpdateOrder)
 
 	// Codebase routes
 	mux.HandleFunc("GET /api/codebase/folder", handleCodebaseGetFolderContents)
@@ -148,11 +149,24 @@ func handleDocsCreateDoc(w http.ResponseWriter, r *http.Request) {
 
 func handleDocsDeleteDoc(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Query().Get("filePath")
-	if filePath == "" {
-		filePath = r.URL.Path[len("/api/docs/"):]
-	}
 
 	if err := core.DeleteDoc(filePath); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(nil)
+}
+
+func handleDocsUpdateOrder(w http.ResponseWriter, r *http.Request) {
+	var req core.UpdateDocOrderRequestPayload
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := core.UpdateDocOrder(req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

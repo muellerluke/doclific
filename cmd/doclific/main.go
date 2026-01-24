@@ -16,10 +16,19 @@ var rootCmd = &cobra.Command{
 	Short: "A powerful documentation tool",
 	Long:  `Doclific is a documentation tool for creating and managing documentation with a modern web interface.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		isInGitRepo, err := core.IsInGitRepo()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
+			os.Exit(1)
+		}
+		if !isInGitRepo {
+			fmt.Fprintf(os.Stderr, "❌ Error: Not in a git repository; ensure Doclific is running in an initialized git repository\n")
+			os.Exit(1)
+		}
 		// Default command - start the server
 		port, _ := cmd.Flags().GetInt("port")
 		if err := server.StartServer(port); err != nil {
-			fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
+			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
@@ -30,7 +39,15 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a new Doclific project",
 	Long:  `Initialize a new Doclific project in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Call initProject() function here
+		isInGitRepo, err := core.IsInGitRepo()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
+			os.Exit(1)
+		}
+		if !isInGitRepo {
+			fmt.Fprintf(os.Stderr, "❌ Error: Not in a git repository; ensure Doclific is running in an initialized git repository\n")
+			os.Exit(1)
+		}
 		fmt.Println("🚀 Initializing Doclific project...")
 		fmt.Println("   This will create a 'doclific' directory in the current folder.")
 		if err := core.CreateDoclificFolder(); err != nil {

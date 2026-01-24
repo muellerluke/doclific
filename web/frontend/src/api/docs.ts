@@ -130,3 +130,32 @@ export async function deleteDoc(filePath: string): Promise<void> {
 		throw new Error(`Failed to delete doc: ${errorText}`);
 	}
 }
+
+export interface DocOrderNode {
+	name: string;
+	updatedPath: string;
+	afterSibling: string | null;
+	beforeSibling: string | null;
+}
+
+/**
+ * Update the doc tree (ordering + nesting)
+ * @param payload - The payload containing the name, updated path, and updated order
+ * @returns Promise resolving to void
+ */
+export async function updateDocOrder(payload: DocOrderNode): Promise<void> {
+	const url = new URL(`${API_BASE_URL}/docs/order`);
+
+	const response = await fetch(url.toString(), {
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		throw new Error(`Failed to update doc order: ${errorText}`);
+	}
+}

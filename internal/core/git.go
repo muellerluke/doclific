@@ -15,6 +15,15 @@ func GetRepoName() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+func IsInGitRepo() (bool, error) {
+	cmd := exec.Command("git", "rev-parse", "--is-inside-work-tree")
+	output, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	return strings.TrimSpace(string(output)) == "true", nil
+}
+
 // get current branch name via git
 func GetCurrentBranch() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")

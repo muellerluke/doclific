@@ -5,9 +5,10 @@ export const CodebaseSnippetType = 'CodebaseSnippet';
 
 export interface CodebaseSnippetElementType {
     type: typeof CodebaseSnippetType;
-    filePath?: string;
+    filePath: string;
     lineStart?: string;
     lineEnd?: string;
+    showFileSelector?: boolean;
     children: [{ text: '' }];
     [key: string]: any;
 }

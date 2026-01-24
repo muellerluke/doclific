@@ -100,6 +100,7 @@ export const insertBlock = (
 				filePath: '',
 				lineStart: '',
 				lineEnd: '',
+				showFileSelector: true,
 				children: [{ text: '' }],
 			});
 		} else if (type === ERDType) {

@@ -9,6 +9,7 @@ import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
 import { getFileContents, getPrefix } from '@/api/codebase';
+import { Spinner } from './spinner';
 
 // Singleton highlighter cache
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -37,9 +38,9 @@ async function getHighlighter(lang: string): Promise<Highlighter> {
 export function CodebaseSnippetElement({ attributes, children, element }: PlateElementProps<CodebaseSnippetElementType>) {
     const { theme } = useTheme();
     const editor = useEditorRef();
+    const showFileSelector = element.showFileSelector;
     const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
     const [highlightedCode, setHighlightedCode] = useState<string>('');
-    const [fileSelectorOpen, setFileSelectorOpen] = useState(false);
 
     const prefixQuery = useQuery({
         queryKey: ["codebase", "prefix"],
@@ -51,14 +52,15 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     const fileContents = useQuery({
         queryKey: ["codebase", "get-file-contents", element.filePath],
         queryFn: () => getFileContents(element.filePath || ''),
-        enabled: !!element.filePath,
+        enabled: element.filePath !== undefined && element.filePath.length > 0,
     })
 
     const language = getLanguageFromPath(element.filePath);
 
     useEffect(() => {
+        if (highlighter) return;
+        if (!language) return;
         let mounted = true;
-
         getHighlighter(language).then((h) => {
             if (mounted) {
                 setHighlighter(h);
@@ -66,16 +68,19 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         }).catch((error) => {
             console.error('Failed to get highlighter:', error);
         });
-
         return () => {
             mounted = false;
         };
-    }, [language]);
+    }, [language, highlighter]);
 
     useEffect(() => {
         if (!highlighter || !fileContents.data) return;
 
         const highlightCode = async () => {
+            if (!highlighter.getLoadedLanguages().includes(language)) {
+                await highlighter.loadLanguage(language as Parameters<Highlighter['loadLanguage']>[0]);
+            }
+
             const code = fileContents.data?.contents || '';
             const startLine = element.lineStart ? parseInt(element.lineStart) : 1;
             let endLine: number | undefined = undefined;
@@ -136,7 +141,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                 const fallbackHtml = `<div class="overflow-x-auto"><pre class="p-4 text-sm leading-normal font-mono m-0">${lineItems}</pre></div>`;
                 setHighlightedCode(fallbackHtml);
             }
-        };
+        }
 
         highlightCode();
     }, [highlighter, fileContents.data, language, theme, element.lineStart, element.lineEnd]);
@@ -155,7 +160,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                     </a>
                     <button
                         className='bg-transparent border-none p-0 m-0 cursor-pointer'
-                        onClick={() => setFileSelectorOpen(true)}
+                        onClick={() => editor.tf.setNodes({ showFileSelector: true }, { at: element })}
                     >
                         <Settings className='size-4 text-muted-foreground' />
                     </button>
@@ -165,14 +170,19 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                 </button>
             </div>
             <div className="relative">
-                {fileContents.isLoading ? (
-                    <div className="p-4 text-sm text-muted-foreground">Loading code...</div>
-                ) : highlightedCode ? (
-                    <div
-                        dangerouslySetInnerHTML={{ __html: highlightedCode }}
-                    />
-                ) : (
-                    <div className="p-4 text-sm text-muted-foreground">No code to display</div>
+                {(fileContents.isLoading || (!fileContents.isLoading && !highlightedCode && element.filePath !== '')) ? (
+                    <div className="p-4 text-sm text-muted-foreground">
+                        <Spinner
+                            className="size-4"
+                        />
+                    </div>
+                ) : (<div
+                    dangerouslySetInnerHTML={{ __html: highlightedCode }}
+                />)}
+                {(element.filePath === '' || fileContents.isError || fileContents.data?.contents === '') && (
+                    <div className="p-4 text-sm text-muted-foreground">
+                        <p>Error loading code</p>
+                    </div>
                 )}
             </div>
             <div className="bg-muted px-4 py-2 border-t flex justify-between items-center">
@@ -180,8 +190,8 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
             </div>
             {children}
             <FileSelector
-                open={fileSelectorOpen}
-                onClose={() => setFileSelectorOpen(false)}
+                open={showFileSelector || false}
+                onClose={() => editor.tf.setNodes({ showFileSelector: false }, { at: element })}
                 onSelect={(filePath, startLine, endLine) => {
                     editor.tf.setNodes(
                         {
