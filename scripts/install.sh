@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+# Capture script directory before any cd commands
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SKILLS_DIR="$REPO_ROOT/skills"
+
 # -----------------------------
 # Config
 # -----------------------------
@@ -199,3 +204,27 @@ find . -maxdepth 1 -type d -name "$BIN_NAME-*" -exec rm -rf {} + 2>/dev/null || 
 
 info "✅ $BIN_NAME installed successfully!"
 info "Run: $BIN_NAME --help"
+
+# -----------------------------
+# Add skills to ~/.cursor or ~/.claude
+# -----------------------------
+if [ -d "$SKILLS_DIR" ]; then
+  if [ -d ~/.cursor ]; then
+    info "Adding skills to ~/.cursor/skills"
+    mkdir -p ~/.cursor/skills
+    cp -r "$SKILLS_DIR"/* ~/.cursor/skills/
+    # install dependencies
+    cd ~/.cursor/skills/generate-doclific-erd-json/
+    npm install
+    cd -
+  fi
+  
+  if [ -d ~/.claude ]; then
+    info "Adding skills to ~/.claude/skills"
+    mkdir -p ~/.claude/skills
+    cp -r "$SKILLS_DIR"/* ~/.claude/skills/
+    # install dependencies
+    cd ~/.claude/skills/generate-doclific-erd-json/
+    npm install
+  fi
+fi

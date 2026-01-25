@@ -264,9 +264,14 @@ function DeleteDocDialog({
         },
     })
 
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        setOpen(true)
+    }
+
     return (
-        <AlertDialog open={open} onOpenChange={setOpen}>
-            <AlertDialogTrigger asChild className="p-0 border-none bg-transparent hidden group-hover/item:block cursor-pointer">
+        <AlertDialog open={open}>
+            <AlertDialogTrigger asChild onClick={handleOpen} className="p-0 border-none bg-transparent hidden group-hover/item:block cursor-pointer">
                 <Icons.TrashIcon className="size-4 stroke-muted-foreground" />
             </AlertDialogTrigger>
             <AlertDialogContent>

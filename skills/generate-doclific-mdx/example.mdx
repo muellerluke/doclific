@@ -1,0 +1,47 @@
+# Example Documentation Page
+
+This is an example MDX file showing how to write Doclific documentation.
+
+## Using Standard Markdown
+
+You can use all standard markdown features:
+
+- **Bold text** and *italic text*
+- Lists (ordered and unordered)
+- [Links](https://example.com)
+- `inline code`
+
+### Code Blocks
+
+```typescript
+const greeting = "Hello, World!";
+console.log(greeting);
+```
+
+## Embedding Code from the Codebase
+
+Use the `CodebaseSnippet` component to embed actual code from the repository:
+
+<CodebaseSnippet filePath="scripts/install.sh" lineStart="1" lineEnd="20">
+</CodebaseSnippet>
+
+You can also show an entire file by omitting line numbers:
+
+<CodebaseSnippet filePath="go.mod" lineStart="" lineEnd="">
+</CodebaseSnippet>
+
+## Database Schema Diagrams
+
+Use the `ERD` component for entity relationship diagrams.
+
+> **Note:** To generate ERD JSON, use the `generate-doclific-erd-json` skill.
+
+<ERD tables='[...]' relationships='[...]'>
+</ERD>
+
+## Tips
+
+1. Use headings to organize your content hierarchically
+2. Include code snippets to show real implementation details
+3. Add ERD diagrams when documenting database schemas
+4. Keep paragraphs concise and focused

@@ -1,0 +1,16 @@
+{
+	"name": "generate-doclific-erd-json",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"he": "^1.2.0",
+		"zod": "^4.3.6"
+	}
+}

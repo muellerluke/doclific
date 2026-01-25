@@ -115,6 +115,7 @@ function CustomEdge(props: EdgeProps) {
 
 function TableNode({ data, id }: { data: TableNodeData, id: string }) {
     const { columns, name, onChange } = data;
+
     const [isEditingTitle, setIsEditingTitle] = useState(false);
 
     const handleTitleBlur = (value: string) => {

@@ -57,6 +57,10 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   echo "📦 Copying frontend build files..."
   cp -r web/build "$BUILD_DIR/build"
 
+  # Copy skills
+  echo "📦 Copying skills..."
+  cp -r skills "$BUILD_DIR/skills"
+
   # Create version file
   echo "📝 Creating version file..."
   VERSION_JSON="{\"version\":\"$VERSION\"}"

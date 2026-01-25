@@ -1,0 +1,150 @@
+{
+  "description": "Example ERD for a blog application with users and posts",
+  
+  "tables": [
+    {
+      "id": "t1",
+      "name": "users",
+      "x": 50,
+      "y": 50,
+      "columns": [
+        {
+          "id": "t1-c1",
+          "name": "id",
+          "dataType": "serial",
+          "isPrimaryKey": true,
+          "isNullable": false
+        },
+        {
+          "id": "t1-c2",
+          "name": "email",
+          "dataType": "varchar",
+          "isPrimaryKey": false,
+          "isNullable": false
+        },
+        {
+          "id": "t1-c3",
+          "name": "name",
+          "dataType": "varchar",
+          "isPrimaryKey": false,
+          "isNullable": true
+        },
+        {
+          "id": "t1-c4",
+          "name": "created_at",
+          "dataType": "timestamp",
+          "isPrimaryKey": false,
+          "isNullable": false
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "name": "posts",
+      "x": 350,
+      "y": 50,
+      "columns": [
+        {
+          "id": "t2-c1",
+          "name": "id",
+          "dataType": "serial",
+          "isPrimaryKey": true,
+          "isNullable": false
+        },
+        {
+          "id": "t2-c2",
+          "name": "user_id",
+          "dataType": "integer",
+          "isPrimaryKey": false,
+          "isNullable": false
+        },
+        {
+          "id": "t2-c3",
+          "name": "title",
+          "dataType": "varchar",
+          "isPrimaryKey": false,
+          "isNullable": false
+        },
+        {
+          "id": "t2-c4",
+          "name": "content",
+          "dataType": "text",
+          "isPrimaryKey": false,
+          "isNullable": true
+        },
+        {
+          "id": "t2-c5",
+          "name": "published_at",
+          "dataType": "timestamp",
+          "isPrimaryKey": false,
+          "isNullable": true
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "name": "comments",
+      "x": 650,
+      "y": 50,
+      "columns": [
+        {
+          "id": "t3-c1",
+          "name": "id",
+          "dataType": "serial",
+          "isPrimaryKey": true,
+          "isNullable": false
+        },
+        {
+          "id": "t3-c2",
+          "name": "post_id",
+          "dataType": "integer",
+          "isPrimaryKey": false,
+          "isNullable": false
+        },
+        {
+          "id": "t3-c3",
+          "name": "user_id",
+          "dataType": "integer",
+          "isPrimaryKey": false,
+          "isNullable": false
+        },
+        {
+          "id": "t3-c4",
+          "name": "body",
+          "dataType": "text",
+          "isPrimaryKey": false,
+          "isNullable": false
+        }
+      ]
+    }
+  ],
+
+  "relationships": [
+    {
+      "id": "r1",
+      "sourceTableId": "t1",
+      "sourceColumnId": "t1-c1",
+      "targetTableId": "t2",
+      "targetColumnId": "t2-c2",
+      "type": "one-to-many"
+    },
+    {
+      "id": "r2",
+      "sourceTableId": "t2",
+      "sourceColumnId": "t2-c1",
+      "targetTableId": "t3",
+      "targetColumnId": "t3-c2",
+      "type": "one-to-many"
+    },
+    {
+      "id": "r3",
+      "sourceTableId": "t1",
+      "sourceColumnId": "t1-c1",
+      "targetTableId": "t3",
+      "targetColumnId": "t3-c3",
+      "type": "one-to-many"
+    }
+  ],
+
+  "mdx_output": "<ERD tables='[{\"id\":\"t1\",\"name\":\"users\",\"x\":50,\"y\":50,\"columns\":[{\"id\":\"t1-c1\",\"name\":\"id\",\"dataType\":\"serial\",\"isPrimaryKey\":true,\"isNullable\":false},{\"id\":\"t1-c2\",\"name\":\"email\",\"dataType\":\"varchar\",\"isPrimaryKey\":false,\"isNullable\":false},{\"id\":\"t1-c3\",\"name\":\"name\",\"dataType\":\"varchar\",\"isPrimaryKey\":false,\"isNullable\":true},{\"id\":\"t1-c4\",\"name\":\"created_at\",\"dataType\":\"timestamp\",\"isPrimaryKey\":false,\"isNullable\":false}]},{\"id\":\"t2\",\"name\":\"posts\",\"x\":350,\"y\":50,\"columns\":[{\"id\":\"t2-c1\",\"name\":\"id\",\"dataType\":\"serial\",\"isPrimaryKey\":true,\"isNullable\":false},{\"id\":\"t2-c2\",\"name\":\"user_id\",\"dataType\":\"integer\",\"isPrimaryKey\":false,\"isNullable\":false},{\"id\":\"t2-c3\",\"name\":\"title\",\"dataType\":\"varchar\",\"isPrimaryKey\":false,\"isNullable\":false},{\"id\":\"t2-c4\",\"name\":\"content\",\"dataType\":\"text\",\"isPrimaryKey\":false,\"isNullable\":true},{\"id\":\"t2-c5\",\"name\":\"published_at\",\"dataType\":\"timestamp\",\"isPrimaryKey\":false,\"isNullable\":true}]},{\"id\":\"t3\",\"name\":\"comments\",\"x\":650,\"y\":50,\"columns\":[{\"id\":\"t3-c1\",\"name\":\"id\",\"dataType\":\"serial\",\"isPrimaryKey\":true,\"isNullable\":false},{\"id\":\"t3-c2\",\"name\":\"post_id\",\"dataType\":\"integer\",\"isPrimaryKey\":false,\"isNullable\":false},{\"id\":\"t3-c3\",\"name\":\"user_id\",\"dataType\":\"integer\",\"isPrimaryKey\":false,\"isNullable\":false},{\"id\":\"t3-c4\",\"name\":\"body\",\"dataType\":\"text\",\"isPrimaryKey\":false,\"isNullable\":false}]}]' relationships='[{\"id\":\"r1\",\"sourceTableId\":\"t1\",\"sourceColumnId\":\"t1-c1\",\"targetTableId\":\"t2\",\"targetColumnId\":\"t2-c2\",\"type\":\"one-to-many\"},{\"id\":\"r2\",\"sourceTableId\":\"t2\",\"sourceColumnId\":\"t2-c1\",\"targetTableId\":\"t3\",\"targetColumnId\":\"t3-c2\",\"type\":\"one-to-many\"},{\"id\":\"r3\",\"sourceTableId\":\"t1\",\"sourceColumnId\":\"t1-c1\",\"targetTableId\":\"t3\",\"targetColumnId\":\"t3-c3\",\"type\":\"one-to-many\"}]'>\n</ERD>"
+}

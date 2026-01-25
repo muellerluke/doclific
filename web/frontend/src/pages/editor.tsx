@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useLocation } from "react-router"
+import { useEffect } from "react"
 import RichTextEditor from "@/components/editor-container";
 import { getDoc, updateDoc } from "@/api/docs";
 
@@ -11,7 +12,23 @@ export default function RTE() {
         queryKey: ["docs", "get-doc", filePath],
         queryFn: () => getDoc(filePath),
         enabled: true,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
     })
+
+    // Refetch when page becomes visible (user returns to tab/window)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                docQuery.refetch()
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
+    }, [docQuery])
 
     const updateDocMutation = useMutation({
         mutationKey: ["docs", "update-doc", filePath],
