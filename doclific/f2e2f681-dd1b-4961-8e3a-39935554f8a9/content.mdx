@@ -1,0 +1,73 @@
+# Architecture Overview
+
+Doclific is built with a clean architecture that separates concerns between the backend (Go), frontend (React/TypeScript), and CLI interface.
+
+## System Architecture
+
+<CodebaseSnippet filePath="cmd/doclific/main.go" lineStart="1" lineEnd="35">
+
+</CodebaseSnippet>
+
+## Core Components
+
+### Backend (Go)
+
+The backend is organized into three main packages:
+
+1. **`internal/core/`**: Core domain logic
+
+   * Document management (`docs.go`)
+   * Git integration (`git.go`)
+   * Codebase exploration (`codebase.go`)
+   * Auto-update functionality (`update.go`)
+2. **`internal/server/`**: HTTP server and API handlers
+
+   * RESTful API endpoints (`handlers.go`)
+   * Server setup and routing (`server.go`)
+3. **`internal/config/`**: Configuration management
+
+   * Configuration storage and retrieval (`config.go`)
+
+### Frontend (React/TypeScript)
+
+The frontend is a modern React application built with:
+
+* **TypeScript** for type safety
+* **Vite** for fast development and building
+* **React Router** for client-side routing
+* **TanStack Query** for data fetching
+* **TipTap** for the rich text editor
+
+Key components:
+
+* `AppSidebar`: Navigation and document management
+* `RichTextEditor`: Notion-like editing experience
+* `CodebaseSnippet`: Code reference component
+* `ERD`: Entity relationship diagram component
+
+### CLI (Cobra)
+
+The CLI is built using Cobra and provides commands for:
+
+* Starting the server
+* Initializing projects
+* Managing configuration
+* Checking versions and updates
+
+<CodebaseSnippet filePath="cmd/doclific/main.go" lineStart="14" lineEnd="58">
+
+</CodebaseSnippet>
+
+## Data Flow
+
+1. **Document Storage**: Documents are stored in the `doclific/` directory as MDX files
+2. **API Layer**: The Go server exposes REST endpoints for CRUD operations
+3. **Frontend**: React app consumes the API and renders the UI
+4. **Editor**: TipTap editor allows rich text editing with custom MDX components
+
+## Key Design Decisions
+
+* **Local-first**: All data is stored locally in the project directory
+* **Git-integrated**: Requires a git repository to function
+* **MDX-based**: Uses MDX for extensibility and code integration
+* **Single binary**: Frontend is embedded in the Go binary for easy distribution

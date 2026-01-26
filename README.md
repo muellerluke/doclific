@@ -5,7 +5,6 @@
 ## Features
 
 -   📝 **Notion-like Editor**: Rich text editing experience with support for headings, lists, code blocks, and more
--   🤖 **AI-Powered Documentation**: Generate documentation using AI (currently supports Google, with more providers coming soon)
 -   📁 **Codebase Integration**: Reference code snippets directly from your repository
 -   🔍 **Smart Navigation**: Organized folder structure for easy documentation management
 -   ⚡ **Fast & Local**: Runs entirely on your machine - no external services required
@@ -24,8 +23,62 @@ This will:
 -   Download the latest release for your platform
 -   Install the binary to `/usr/local/bin` (or `~/.local/bin` if you don't have write permissions)
 -   Set up the frontend build files
+-   Automatically add skills for Cursor and Claude Code to `~/.cursor/skills` or `~/.claude/skills` (if those directories exist)
 
 **Note**: Make sure `~/.local/bin` (or `/usr/local/bin`) is in your `PATH` if it's not already.
+
+**Skills Installation**: The installation script will automatically add Doclific skills to Cursor and Claude Code if those applications are installed. If the skills are not automatically added, you can manually copy them from the `skills/` directory in this repository to `~/.cursor/skills/` or `~/.claude/skills/` as needed.
+
+## Using Cursor or Claude Code
+
+Doclific includes skills that allow Cursor and Claude Code to automatically generate documentation for your project. Here's how to use them:
+
+### Writing Documentation
+
+To generate documentation for a specific document, simply ask Cursor or Claude Code:
+
+```
+Write documentation for the "Getting Started" document
+```
+
+or
+
+```
+Generate documentation for the "API Reference" page
+```
+
+The AI will:
+1. Find the document by title in your `doclific/` folder
+2. Write well-structured MDX documentation to the `content.mdx` file
+3. Use code snippets from your codebase when relevant
+
+### Creating ERD Diagrams
+
+To create an Entity Relationship Diagram (ERD) for your database schema, you **must explicitly request an ERD**:
+
+```
+Create an ERD diagram for my database schema
+```
+
+or
+
+```
+Generate an ERD showing the relationships between Users, Posts, and Comments tables
+```
+
+When you request an ERD, the AI will:
+1. Ask you about your database schema (tables, columns, relationships)
+2. Generate the properly formatted JSON for the ERD component
+3. Add the `<ERD>` component to your documentation
+
+**Important**: If you want an ERD diagram, make sure to mention "ERD" or "Entity Relationship Diagram" in your prompt. The AI will not automatically create ERDs unless you specifically request them.
+
+### Tips for Better Results
+
+- Be specific about which document you want to update
+- Mention if you want code snippets included
+- For ERDs, describe your tables, columns, and relationships clearly
+- You can ask for multiple documents to be updated in one session
 
 ## Commands
 
@@ -60,28 +113,19 @@ This creates a `doclific` folder structure where your documentation will be stor
 Get a configuration value.
 
 ```bash
-doclific get AI_PROVIDER
-doclific get GOOGLE_API_KEY
+doclific get DEEPLINK_PREFIX
 ```
 
 **Available keys:**
 
 -   `DEEPLINK_PREFIX` - Prefix for deep linking
--   `AI_PROVIDER` - AI provider to use (currently only `google` is supported, defaults to `google`)
--   `AI_MODEL` - AI model name (optional, defaults to `gemini-3-flash-preview`)
--   `GOOGLE_API_KEY` - Google API key (required for AI features)
--   `OPENAI_API_KEY` - OpenAI API key (reserved for future support)
--   `ANTHROPIC_API_KEY` - Anthropic API key (reserved for future support)
-
-API keys are automatically masked when displayed for security.
 
 ### `doclific set [key] [value]`
 
 Set a configuration value.
 
 ```bash
-doclific set AI_PROVIDER google
-doclific set GOOGLE_API_KEY your-api-key-here
+doclific set DEEPLINK_PREFIX https://example.com
 ```
 
 ### `doclific version`
@@ -106,25 +150,6 @@ doclific update
 
 Doclific stores configuration in `~/.config/doclific/config.json`. You can manage it using the `get` and `set` commands, or edit the file directly.
 
-### Setting up AI
-
-**Current Status**: Doclific currently supports Google's Gemini AI models. Support for OpenAI and Anthropic is planned for future releases.
-
-To use AI-powered documentation generation, configure Google AI:
-
-```bash
-# Set your Google API key (required)
-doclific set GOOGLE_API_KEY your-api-key-here
-
-# The provider defaults to "google", but you can explicitly set it:
-doclific set AI_PROVIDER google
-
-# Set the model (optional, defaults to gemini-3-flash-preview)
-doclific set AI_MODEL gemini-3-flash-preview
-```
-
-**Future Support**: OpenAI and Anthropic providers will be supported in upcoming releases. The configuration keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) are already available for future use.
-
 ## Usage
 
 1. **Initialize a project**:
@@ -143,8 +168,6 @@ doclific set AI_MODEL gemini-3-flash-preview
 3. **Open the web interface**: The browser will open automatically, or navigate to `http://localhost:6767`
 
 4. **Create documentation**: Use the Notion-like editor to create and edit your documentation
-
-5. **Use AI assistance**: Click the AI button (✨) in the editor to generate documentation using AI
 
 ## Project Structure
 

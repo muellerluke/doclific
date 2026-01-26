@@ -13,7 +13,6 @@ import {
   PilcrowIcon,
   Quote,
   RadicalIcon,
-  SparklesIcon,
   Square,
   Table,
   TableOfContentsIcon,
@@ -37,7 +36,6 @@ import {
   InlineComboboxItem,
 } from './inline-combobox';
 import { CodebaseSnippetType } from '../editor/plugins/codebase-kit';
-import { CustomAIPlugin } from '../editor/plugins/custom-ai-kit';
 import { ERDType } from '../editor/plugins/erd-kit';
 
 type Group = {
@@ -54,19 +52,6 @@ type Group = {
 };
 
 const groups: Group[] = [
-  {
-    group: 'AI',
-    items: [
-      {
-        focusEditor: false,
-        icon: <SparklesIcon />,
-        value: 'AI',
-        onSelect: (editor) => {
-          editor.getApi(CustomAIPlugin).aiChat.show(editor);
-        },
-      },
-    ],
-  },
   {
     group: 'Basic blocks',
     items: [

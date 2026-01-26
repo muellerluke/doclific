@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export function LinkElement(props: PlateElementProps<TLinkElement>) {
   const suggestionData = props.editor
     .getApi(SuggestionPlugin)
-    .suggestion.suggestionData(props.element) as
+    .suggestion?.suggestionData(props.element) as
     | TInlineSuggestionData
     | undefined;
 

@@ -1,0 +1,106 @@
+# Backend Development
+
+The Doclific backend is written in Go and provides the core functionality for document management, Git integration, and codebase exploration.
+
+## Project Structure
+
+```
+internal/
+├── core/          # Core domain logic
+│   ├── docs.go    # Document CRUD operations
+│   ├── git.go     # Git integration
+│   ├── codebase.go # Codebase exploration
+│   └── update.go  # Auto-update functionality
+├── server/        # HTTP server and API
+│   ├── server.go  # Server setup
+│   └── handlers.go # API handlers
+└── config/        # Configuration
+    └── config.go  # Config management
+```
+
+## Core Package
+
+The `internal/core` package contains the business logic:
+
+### Document Management
+
+<CodebaseSnippet filePath="internal/core/docs.go" lineStart="13" lineEnd="27">
+</CodebaseSnippet>
+
+Documents are stored in a hierarchical folder structure where each folder contains:
+- `config.json`: Metadata (title, icon, order)
+- `content.mdx`: The actual documentation content
+
+### Git Integration
+
+<CodebaseSnippet filePath="internal/core/git.go" lineStart="1" lineEnd="30">
+</CodebaseSnippet>
+
+The Git integration provides:
+- Repository name detection
+- Current branch information
+- User information (name, email)
+- Repository validation
+
+### Codebase Exploration
+
+<CodebaseSnippet filePath="internal/core/codebase.go" lineStart="14" lineEnd="20">
+</CodebaseSnippet>
+
+The codebase module allows:
+- Browsing folder contents
+- Reading file contents
+- Searching for file prefixes
+- Respecting `.gitignore` rules
+
+## Server Package
+
+The `internal/server` package handles HTTP requests:
+
+### Route Registration
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="13" lineEnd="33">
+</CodebaseSnippet>
+
+### API Endpoints
+
+- **Docs**: `GET`, `POST`, `PUT`, `DELETE` operations for documents
+- **Git**: Repository information endpoints
+- **Codebase**: File and folder browsing endpoints
+- **Update**: Version checking endpoint
+
+### CORS Support
+
+<CodebaseSnippet filePath="internal/server/server.go" lineStart="15" lineEnd="33">
+</CodebaseSnippet>
+
+## Configuration Package
+
+Configuration is stored in `~/.config/doclific/config.json`:
+
+<CodebaseSnippet filePath="internal/config/config.go" lineStart="1" lineEnd="30">
+</CodebaseSnippet>
+
+## Testing
+
+Backend tests are located alongside the source files with `_test.go` suffix:
+
+```bash
+go test ./...
+```
+
+Key test files:
+- `internal/core/docs__test.go`
+- `internal/core/codebase__test.go`
+- `internal/core/git__test.go`
+- `internal/config/config_test.go`
+
+## Building
+
+To build the backend:
+
+```bash
+go build -o doclific cmd/doclific/main.go
+```
+
+The binary embeds the frontend build files, creating a single executable.

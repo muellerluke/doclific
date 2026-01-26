@@ -1,0 +1,182 @@
+# Development Guide
+
+This guide will help you set up a development environment for Doclific and contribute to the project.
+
+## Prerequisites
+
+Before you start, make sure you have the following installed:
+
+* **Go**: Version 1.25 or higher
+* **Node.js**: Version 20 or higher
+* **npm**: (Usually comes with Node.js)
+* **Git**
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/muellerluke/doclific.git
+cd doclific
+```
+
+### 2. Install Frontend Dependencies
+
+```bash
+cd web/frontend
+npm install
+cd ../..
+```
+
+### 3. Verify Go Installation
+
+```bash
+go version
+```
+
+## Development Workflow
+
+### Running the Backend
+
+The backend serves the API and the static files. For development, you can run it directly:
+
+```bash
+# From the project root
+go run cmd/doclific/main.go
+```
+
+By default, the server runs on `http://localhost:6767`.
+
+<CodebaseSnippet filePath="cmd/doclific/main.go" lineStart="18" lineEnd="34">
+
+</CodebaseSnippet>
+
+### Running the Frontend (Dev Mode)
+
+For a better developer experience (HMR, fast refresh), run the frontend in a separate terminal:
+
+```bash
+cd web/frontend
+npm run dev
+```
+
+This will start the Vite dev server, usually at `http://localhost:5173`.
+
+> **Note**: You will need to configure the frontend to talk to the backend port (6767) if you are working on API integration.
+
+### Building from Source
+
+To build the full binary (which embeds the frontend):
+
+1. **Build the Frontend**:
+
+```bash
+cd web/frontend
+npm run build
+cd ../..
+```
+
+This generates static files in `web/frontend/dist`.
+
+2. **Build the Binary**:
+
+```bash
+go build -o doclific cmd/doclific/main.go
+```
+
+3. **Run the Binary**:
+
+```bash
+./doclific
+```
+
+## Project Structure
+
+<CodebaseSnippet filePath="CONTRIBUTING.md" lineStart="96" lineEnd="105">
+
+</CodebaseSnippet>
+
+* `cmd/`: Entry point for the application (Cobra CLI commands)
+* `internal/`: Private application and library code
+
+  * `core/`: Core domain logic (Docs, Git, File System)
+  * `server/`: HTTP server and API handlers
+  * `config/`: Configuration management
+* `web/`: Frontend source code
+
+  * `frontend/`: React + TypeScript application
+* `skills/`: AI assistant skills for Cursor and Claude Code
+
+## Running Tests
+
+### Backend (Go)
+
+```bash
+go test ./...
+```
+
+Key test files:
+
+* `internal/core/docs__test.go`
+* `internal/core/codebase__test.go`
+* `internal/core/git__test.go`
+* `internal/config/config_test.go`
+
+### Frontend (React)
+
+Currently, the frontend does not have a test suite set up. Contributing one would be a great way to help!
+
+## Code Style
+
+### Go
+
+* Follow standard Go conventions
+* Run `go fmt ./...` before committing
+* Use meaningful variable and function names
+
+### TypeScript / React
+
+* We use **ESLint** and **Prettier**
+* Run linting before pushing:
+
+```bash
+cd web/frontend
+npm run lint
+```
+
+## Pull Request Process
+
+1. Create a new branch for your feature or fix: `git checkout -b feature/amazing-feature`
+2. Commit your changes with meaningful commit messages
+3. Push to your fork: `git push origin feature/amazing-feature`
+4. Open a Pull Request against the `main` branch
+5. Describe your changes in detail and reference any related issues
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration:
+
+<CodebaseSnippet filePath=".github/workflows/ci.yml" lineStart="1" lineEnd="30">
+
+</CodebaseSnippet>
+
+## Release Process
+
+Releases are automated using the release script:
+
+<CodebaseSnippet filePath="scripts/release.sh" lineStart="1" lineEnd="30">
+
+</CodebaseSnippet>
+
+## Reporting Bugs
+
+If you find a bug, please create an issue including:
+
+* Your operating system and version
+* Browser version (if applicable)
+* Steps to reproduce the bug
+* Expected vs. actual behavior
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the Apache 2.0 license. See `LICENSE` for details.

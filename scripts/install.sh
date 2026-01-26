@@ -12,7 +12,8 @@ SKILLS_DIR="$REPO_ROOT/skills"
 REPO="muellerluke/doclific"
 BIN_NAME="doclific"
 INSTALL_DIR_DEFAULT="/usr/local/bin"
-VERSION="${VERSION:-latest}"
+# Allow version to be passed as first argument, or via environment variable, or default to latest
+VERSION="${1:-${VERSION:-latest}}"
 
 # -----------------------------
 # Helpers

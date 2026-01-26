@@ -30,9 +30,6 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/codebase/folder", handleCodebaseGetFolderContents)
 	mux.HandleFunc("GET /api/codebase/file", handleCodebaseGetFileContents)
 	mux.HandleFunc("GET /api/codebase/prefix", handleCodebaseGetPrefix)
-
-	// AI routes
-	mux.HandleFunc("POST /api/ai/generate-rich-text", handleAIGenerateRichText)
 }
 
 // Git handlers
@@ -233,26 +230,6 @@ func handleCodebaseGetPrefix(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
-}
-
-// AI handlers
-func handleAIGenerateRichText(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Prompt string `json:"prompt"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	richText, err := core.GenerateRichText(req.Prompt)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(richText)
 }
 
 // Update handlers

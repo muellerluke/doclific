@@ -1,0 +1,146 @@
+# Skills System
+
+Doclific includes a skills system that allows Cursor and Claude Code to automatically generate and manage documentation for your project.
+
+## Overview
+
+Skills are AI assistant instructions that enable Cursor and Claude Code to:
+
+* Create new documentation
+* Generate MDX content
+* Create ERD diagrams
+* Navigate the documentation structure
+
+## Available Skills
+
+### 1. create-new-doclific-doc
+
+Creates a new Doclific document with proper structure.
+
+**Location:** `skills/create-new-doclific-doc/`
+
+**Usage:**
+
+```
+Create a new document called "API Reference" under "Getting Started"
+```
+
+The skill will:
+
+1. Navigate the `doclific/` directory to find the parent location
+2. Select an appropriate icon from `all-icons.json`
+3. Call `insert-doc.js` to create the document structure
+
+<CodebaseSnippet filePath="skills/create-new-doclific-doc/insert-doc.js" lineStart="1" lineEnd="30">
+
+</CodebaseSnippet>
+
+### 2. generate-doclific-mdx
+
+Writes MDX documentation for existing documents.
+
+**Location:** `skills/generate-doclific-mdx/`
+
+**Usage:**
+
+```
+Write documentation for the "Getting Started" document
+```
+
+The skill will:
+
+1. Find the document by title in the `doclific/` folder
+2. Write well-structured MDX to `content.mdx`
+3. Use code snippets from your codebase when relevant
+
+**Custom Components:**
+
+* `<CodebaseSnippet>`: Embed code from repository
+* `<ERD>`: Entity relationship diagrams
+
+### 3. generate-doclific-erd-json
+
+Generates JSON for ERD (Entity Relationship Diagram) components.
+
+**Location:** `skills/generate-doclific-erd-json/`
+
+**Usage:**
+
+```
+Create an ERD diagram for my database schema
+```
+
+The skill will:
+
+1. Ask about your database schema
+2. Generate properly formatted JSON
+3. Validate and encode the JSON
+4. Output the `<ERD>` component
+
+<CodebaseSnippet filePath="skills/generate-doclific-erd-json/validate-and-encode.js" lineStart="1" lineEnd="30">
+
+</CodebaseSnippet>
+
+## Installation
+
+Skills are automatically installed during Doclific installation:
+
+<CodebaseSnippet filePath="scripts/install.sh" lineStart="208" lineEnd="258">
+
+</CodebaseSnippet>
+
+Skills are copied to:
+
+* `~/.cursor/skills/` (for Cursor)
+* `~/.claude/skills/` (for Claude Code)
+
+## Using Skills
+
+### In Cursor
+
+Simply ask Cursor to:
+
+* "Create a new document called X"
+* "Write documentation for Y"
+* "Create an ERD for my database"
+
+### In Claude Code
+
+Same as Cursor - just ask naturally:
+
+* "Generate documentation for the API Reference page"
+* "Create an ERD showing Users, Posts, and Comments"
+
+## Skill Structure
+
+Each skill follows this structure:
+
+```
+skill-name/
+├── SKILL.md          # Skill instructions
+├── example.*         # Example files
+└── [other files]    # Supporting files
+```
+
+The `SKILL.md` file contains:
+
+* Skill name and description
+* Overview
+* Detailed instructions
+* Workflow examples
+
+## Creating Custom Skills
+
+To create a custom skill:
+
+1. Create a directory in `skills/`
+2. Add a `SKILL.md` file with instructions
+3. Include any supporting files
+4. The skill will be automatically installed
+
+## Tips for Best Results
+
+* Be specific about document titles
+* Mention if you want code snippets included
+* For ERDs, describe tables, columns, and relationships clearly
+* You can ask for multiple documents in one session

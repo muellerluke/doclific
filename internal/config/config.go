@@ -14,12 +14,7 @@ const (
 
 // Config represents the application configuration
 type Config struct {
-	DeeplinkPrefix  string `json:"DEEPLINK_PREFIX,omitempty"`
-	AIProvider      string `json:"AI_PROVIDER,omitempty"`
-	AIModel         string `json:"AI_MODEL,omitempty"`
-	OpenAIAPIKey    string `json:"OPENAI_API_KEY,omitempty"`
-	AnthropicAPIKey string `json:"ANTHROPIC_API_KEY,omitempty"`
-	GoogleAPIKey    string `json:"GOOGLE_API_KEY,omitempty"`
+	DeeplinkPrefix string `json:"DEEPLINK_PREFIX,omitempty"`
 }
 
 // GetConfigDir returns the configuration directory path (~/.config/doclific)
@@ -62,20 +57,8 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Override with environment variables (env vars take precedence)
-	if envVal := os.Getenv("AI_PROVIDER"); envVal != "" {
-		cfg.AIProvider = envVal
-	}
-	if envVal := os.Getenv("AI_MODEL"); envVal != "" {
-		cfg.AIModel = envVal
-	}
-	if envVal := os.Getenv("OPENAI_API_KEY"); envVal != "" {
-		cfg.OpenAIAPIKey = envVal
-	}
-	if envVal := os.Getenv("ANTHROPIC_API_KEY"); envVal != "" {
-		cfg.AnthropicAPIKey = envVal
-	}
-	if envVal := os.Getenv("GOOGLE_API_KEY"); envVal != "" {
-		cfg.GoogleAPIKey = envVal
+	if envVal := os.Getenv("DEEPLINK_PREFIX"); envVal != "" {
+		cfg.DeeplinkPrefix = envVal
 	}
 
 	return cfg, nil
@@ -116,16 +99,6 @@ func GetConfigValue(key string) (string, error) {
 	switch key {
 	case "DEEPLINK_PREFIX":
 		return cfg.DeeplinkPrefix, nil
-	case "AI_PROVIDER":
-		return cfg.AIProvider, nil
-	case "AI_MODEL":
-		return cfg.AIModel, nil
-	case "OPENAI_API_KEY":
-		return cfg.OpenAIAPIKey, nil
-	case "ANTHROPIC_API_KEY":
-		return cfg.AnthropicAPIKey, nil
-	case "GOOGLE_API_KEY":
-		return cfg.GoogleAPIKey, nil
 	default:
 		return "", fmt.Errorf("unknown config key: %s", key)
 	}
@@ -142,20 +115,9 @@ func SetConfigValue(key, value string) error {
 	switch key {
 	case "DEEPLINK_PREFIX":
 		cfg.DeeplinkPrefix = value
-	case "AI_PROVIDER":
-		cfg.AIProvider = value
-	case "AI_MODEL":
-		cfg.AIModel = value
-	case "OPENAI_API_KEY":
-		cfg.OpenAIAPIKey = value
-	case "ANTHROPIC_API_KEY":
-		cfg.AnthropicAPIKey = value
-	case "GOOGLE_API_KEY":
-		cfg.GoogleAPIKey = value
 	default:
 		return fmt.Errorf("unknown config key: %s", key)
 	}
 
 	return SaveConfig(cfg)
 }
-

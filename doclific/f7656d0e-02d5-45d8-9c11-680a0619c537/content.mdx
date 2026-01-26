@@ -1,0 +1,123 @@
+# Frontend Development
+
+The Doclific frontend is a modern React application built with TypeScript, providing a rich, Notion-like editing experience.
+
+## Technology Stack
+
+- **React 18**: UI framework
+- **TypeScript**: Type safety
+- **Vite**: Build tool and dev server
+- **React Router**: Client-side routing
+- **TanStack Query**: Data fetching and caching
+- **TipTap**: Rich text editor
+- **Tailwind CSS**: Styling
+- **shadcn/ui**: UI component library
+
+## Project Structure
+
+```
+web/frontend/
+├── src/
+│   ├── components/      # React components
+│   │   ├── app-sidebar.tsx
+│   │   ├── editor/     # Editor components
+│   │   └── ui/         # UI components
+│   ├── pages/          # Page components
+│   │   └── editor.tsx
+│   ├── api/           # API client functions
+│   ├── types/         # TypeScript types
+│   └── main.tsx       # Entry point
+└── package.json
+```
+
+## Key Components
+
+### App Sidebar
+
+<CodebaseSnippet filePath="web/frontend/src/components/app-sidebar.tsx" lineStart="293" lineEnd="315">
+</CodebaseSnippet>
+
+The sidebar provides:
+- Document navigation
+- Drag-and-drop reordering
+- Document creation and deletion
+- Git repository information
+
+### Rich Text Editor
+
+<CodebaseSnippet filePath="web/frontend/src/components/editor/editor-kit.tsx" lineStart="1" lineEnd="50">
+</CodebaseSnippet>
+
+The editor is built with TipTap and supports:
+- Markdown syntax
+- Custom MDX components
+- Code snippets
+- ERD diagrams
+
+### Custom MDX Components
+
+#### CodebaseSnippet
+
+Embeds code from the repository:
+
+```tsx
+<CodebaseSnippet filePath="path/to/file.ts" lineStart="1" lineEnd="50" />
+```
+
+#### ERD
+
+Displays entity relationship diagrams:
+
+```tsx
+<ERD tables="[...]" relationships="[...]" />
+```
+
+## Development
+
+### Running the Dev Server
+
+```bash
+cd web/frontend
+npm run dev
+```
+
+This starts the Vite dev server at `http://localhost:5173`.
+
+### Building for Production
+
+```bash
+cd web/frontend
+npm run build
+```
+
+This creates optimized static files in `web/frontend/dist` that are embedded in the Go binary.
+
+### Linting
+
+```bash
+cd web/frontend
+npm run lint
+```
+
+## API Integration
+
+The frontend communicates with the backend through REST APIs:
+
+<CodebaseSnippet filePath="web/frontend/src/api/docs.ts" lineStart="1" lineEnd="30">
+</CodebaseSnippet>
+
+All API calls use TanStack Query for:
+- Automatic caching
+- Background refetching
+- Optimistic updates
+- Error handling
+
+## State Management
+
+- **TanStack Query**: Server state (documents, git info)
+- **React State**: Local UI state (sidebar expansion, editor content)
+- **React Router**: URL state and navigation
+
+## Styling
+
+The project uses Tailwind CSS with shadcn/ui components for a consistent design system. The UI is fully responsive and supports dark mode.

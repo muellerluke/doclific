@@ -1,0 +1,227 @@
+# API Reference
+
+Doclific provides a RESTful API for managing documents, exploring the codebase, and accessing Git information.
+
+## Base URL
+
+All API endpoints are prefixed with `/api`:
+
+```
+http://localhost:6767/api
+```
+
+## Endpoints
+
+### Document Management
+
+#### GET /api/docs
+
+Get all documents in a hierarchical structure.
+
+**Response:**
+```json
+[
+  {
+    "name": "uuid",
+    "title": "Document Title",
+    "icon": "IconName",
+    "order": 0,
+    "children": []
+  }
+]
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="75" lineEnd="84">
+</CodebaseSnippet>
+
+#### GET /api/docs/doc
+
+Get a specific document's content.
+
+**Query Parameters:**
+- `filePath` (required): Path to the document folder
+
+**Response:**
+```json
+"# Document Title\n\nContent..."
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="86" lineEnd="100">
+</CodebaseSnippet>
+
+#### POST /api/docs
+
+Create a new document.
+
+**Request Body:**
+```json
+{
+  "filePath": "parent/path",
+  "title": "New Document",
+  "icon": "IconName"
+}
+```
+
+**Response:**
+```json
+{
+  "url": "/new-document-id"
+}
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="129" lineEnd="148">
+</CodebaseSnippet>
+
+#### PUT /api/docs/doc
+
+Update a document's content.
+
+**Query Parameters:**
+- `filePath` (required): Path to the document folder
+
+**Request Body:**
+```json
+{
+  "content": "# Updated Content"
+}
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="106" lineEnd="127">
+</CodebaseSnippet>
+
+#### DELETE /api/docs/doc
+
+Delete a document.
+
+**Query Parameters:**
+- `filePath` (required): Path to the document folder
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="150" lineEnd="160">
+</CodebaseSnippet>
+
+#### PUT /api/docs/order
+
+Update document order and hierarchy.
+
+**Request Body:**
+```json
+{
+  "name": "document-id",
+  "updatedPath": "parent/path",
+  "beforeSibling": "sibling-id",
+  "afterSibling": "sibling-id"
+}
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="162" lineEnd="176">
+</CodebaseSnippet>
+
+### Git Information
+
+#### GET /api/git/repo-info
+
+Get Git repository information.
+
+**Response:**
+```json
+{
+  "repositoryName": "repo-name",
+  "repositoryBranch": "main",
+  "user": "username",
+  "userEmail": "user@example.com"
+}
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="37" lineEnd="71">
+</CodebaseSnippet>
+
+### Codebase Exploration
+
+#### GET /api/codebase/folder
+
+Get contents of a folder.
+
+**Query Parameters:**
+- `filePath`: Path to the folder (empty for root)
+
+**Response:**
+```json
+[
+  {
+    "path": "path/to/file",
+    "name": "file.ts",
+    "type": "file",
+    "children": []
+  }
+]
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="180" lineEnd="191">
+</CodebaseSnippet>
+
+#### GET /api/codebase/file
+
+Get contents of a file.
+
+**Query Parameters:**
+- `filePath` (required): Path to the file
+
+**Response:**
+```json
+{
+  "contents": "file contents...",
+  "fullPath": "/absolute/path/to/file"
+}
+```
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="193" lineEnd="221">
+</CodebaseSnippet>
+
+#### GET /api/codebase/prefix
+
+Search for files by prefix.
+
+**Query Parameters:**
+- `prefix` (required): File path prefix to search for
+
+**Response:**
+```json
+[
+  {
+    "path": "path/to/file",
+    "name": "file.ts",
+    "type": "file"
+  }
+]
+```
+
+### Update Check
+
+#### GET /api/update/check
+
+Check if a newer version is available.
+
+**Response:**
+```json
+{
+  "isLatest": true,
+  "current": "v1.0.0",
+  "latest": "v1.0.0"
+}
+```
+
+## Error Handling
+
+All endpoints return appropriate HTTP status codes:
+- `200`: Success
+- `400`: Bad Request
+- `500`: Internal Server Error
+
+Error responses include error messages in the response body.
+
+## CORS
+
+All endpoints support CORS for cross-origin requests from the frontend.
+
+<CodebaseSnippet filePath="internal/server/server.go" lineStart="15" lineEnd="33">
+</CodebaseSnippet>

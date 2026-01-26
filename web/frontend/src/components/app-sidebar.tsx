@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSidebar } from "@/components/ui/sidebar"
 import type { FolderStructure } from "@/types/docs"
 import { DynamicIcon, type LucideIconName } from "./ui/dynamic-icon"
-import { useNavigate } from "react-router"
+import { useNavigate, useLocation } from "react-router"
 import {
     Dialog,
     DialogContent,
@@ -292,6 +292,7 @@ function DeleteDocDialog({
 
 export function AppSidebar() {
     const navigate = useNavigate()
+    const location = useLocation()
     const dragState = useRef<{
         draggedId: string | null
         dropTargetId: string | null
@@ -321,13 +322,16 @@ export function AppSidebar() {
             // Snapshot previous value
             const previousDocs = queryClient.getQueryData<FolderStructure[]>(["docs", "get-docs"])
 
+            // Get the old path of the moved document before the move
+            const oldPath = previousDocs ? getDocPath(previousDocs, variables.name) : []
+
             // Optimistically update
             const updatedDocs = normalizeDocs(variables)
             if (updatedDocs) {
                 queryClient.setQueryData(["docs", "get-docs"], updatedDocs)
             }
 
-            return { previousDocs }
+            return { previousDocs, oldPath }
         },
         onError: (error, _variables, context) => {
             // Rollback on error
@@ -335,6 +339,46 @@ export function AppSidebar() {
                 queryClient.setQueryData(["docs", "get-docs"], context.previousDocs)
             }
             toast.error(`Failed to update doc order: ${error.message}`)
+        },
+        onSuccess: (_data, variables, context) => {
+            // After successful move, check if we need to update the URL
+            const currentPath = location.pathname.slice(1) // Remove leading slash
+            if (!currentPath || !context?.oldPath) return
+
+            const oldPathParts = context.oldPath
+            const movedDocName = variables.name
+
+            // Check if the current URL matches the moved doc or any of its parents
+            const currentDocs = queryClient.getQueryData<FolderStructure[]>(["docs", "get-docs"])
+            if (!currentDocs) return
+
+            // Get the new path of the moved document
+            const newPath = getDocPath(currentDocs, movedDocName)
+            const newPathString = newPath.join('/')
+
+            // Check if current path starts with the old path of the moved doc
+            let shouldUpdateUrl = false
+            let newUrlPath = currentPath
+
+            // Check if the current path exactly matches the old path (viewing the moved doc itself)
+            const oldPathString = oldPathParts.join('/')
+            if (currentPath === oldPathString) {
+                shouldUpdateUrl = true
+                newUrlPath = newPathString
+            } else if (currentPath.startsWith(oldPathString + '/')) {
+                // The current path is a child of the moved doc
+                // Replace the old path prefix with the new path
+                const remainingPath = currentPath.slice(oldPathString.length + 1)
+                newUrlPath = newPathString ? `${newPathString}/${remainingPath}` : remainingPath
+                shouldUpdateUrl = true
+            }
+
+            if (shouldUpdateUrl) {
+                // Wait a bit for the query to be invalidated and refetched
+                setTimeout(() => {
+                    navigate(`/${newUrlPath}`, { replace: true })
+                }, 100)
+            }
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["docs", "get-docs"] })
@@ -411,7 +455,6 @@ export function AppSidebar() {
                 // Insert before the specified sibling
                 const idx = sorted.findIndex((d) => d.name === afterSibling)
                 if (idx !== -1) {
-                    console.log([...sorted.slice(0, idx + 1), doc, ...sorted.slice(idx + 1)])
                     return [...sorted.slice(0, idx + 1), doc, ...sorted.slice(idx + 1)]
                 }
             }
@@ -420,7 +463,6 @@ export function AppSidebar() {
                 // Insert after the specified sibling
                 const idx = sorted.findIndex((d) => d.name === beforeSibling)
                 if (idx !== -1) {
-                    console.log([...sorted.slice(0, idx), doc, ...sorted.slice(idx)])
                     return [...sorted.slice(0, idx), doc, ...sorted.slice(idx)]
                 }
             }

@@ -55,7 +55,7 @@ func TestGetConfigValue(t *testing.T) {
 	os.Setenv("HOME", testHome)
 
 	// Test with non-existent config (should return empty string)
-	value, err := GetConfigValue("AI_PROVIDER")
+	value, err := GetConfigValue("DEEPLINK_PREFIX")
 	if err != nil {
 		t.Fatalf("GetConfigValue() error = %v", err)
 	}
@@ -85,41 +85,18 @@ func TestSetConfigValue(t *testing.T) {
 	os.Setenv("HOME", testHome)
 
 	// Test setting a value
-	err := SetConfigValue("AI_PROVIDER", "google")
+	err := SetConfigValue("DEEPLINK_PREFIX", "https://example.com")
 	if err != nil {
 		t.Fatalf("SetConfigValue() error = %v", err)
 	}
 
 	// Verify it was set
-	value, err := GetConfigValue("AI_PROVIDER")
+	value, err := GetConfigValue("DEEPLINK_PREFIX")
 	if err != nil {
 		t.Fatalf("GetConfigValue() error = %v", err)
 	}
-	if value != "google" {
-		t.Errorf("GetConfigValue() = %q, want %q", value, "google")
-	}
-
-	// Test setting multiple values
-	err = SetConfigValue("GOOGLE_API_KEY", "test-key-123")
-	if err != nil {
-		t.Fatalf("SetConfigValue() error = %v", err)
-	}
-
-	keyValue, err := GetConfigValue("GOOGLE_API_KEY")
-	if err != nil {
-		t.Fatalf("GetConfigValue() error = %v", err)
-	}
-	if keyValue != "test-key-123" {
-		t.Errorf("GetConfigValue() = %q, want %q", keyValue, "test-key-123")
-	}
-
-	// Verify AI_PROVIDER is still set
-	value, err = GetConfigValue("AI_PROVIDER")
-	if err != nil {
-		t.Fatalf("GetConfigValue() error = %v", err)
-	}
-	if value != "google" {
-		t.Errorf("GetConfigValue() = %q, want %q", value, "google")
+	if value != "https://example.com" {
+		t.Errorf("GetConfigValue() = %q, want %q", value, "https://example.com")
 	}
 
 	// Test with unknown key
@@ -154,8 +131,7 @@ func TestLoadConfig(t *testing.T) {
 
 	// Test loading after saving
 	testCfg := &Config{
-		AIProvider:   "google",
-		GoogleAPIKey: "test-key",
+		DeeplinkPrefix: "https://example.com",
 	}
 	err = SaveConfig(testCfg)
 	if err != nil {
@@ -166,11 +142,8 @@ func TestLoadConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
 	}
-	if loadedCfg.AIProvider != "google" {
-		t.Errorf("LoadConfig() AIProvider = %q, want %q", loadedCfg.AIProvider, "google")
-	}
-	if loadedCfg.GoogleAPIKey != "test-key" {
-		t.Errorf("LoadConfig() GoogleAPIKey = %q, want %q", loadedCfg.GoogleAPIKey, "test-key")
+	if loadedCfg.DeeplinkPrefix != "https://example.com" {
+		t.Errorf("LoadConfig() DeeplinkPrefix = %q, want %q", loadedCfg.DeeplinkPrefix, "https://example.com")
 	}
 }
 
@@ -189,9 +162,7 @@ func TestSaveConfig(t *testing.T) {
 	os.Setenv("HOME", testHome)
 
 	cfg := &Config{
-		AIProvider:   "google",
-		AIModel:      "gemini-3-flash-preview",
-		GoogleAPIKey: "test-api-key",
+		DeeplinkPrefix: "https://example.com",
 	}
 
 	err := SaveConfig(cfg)

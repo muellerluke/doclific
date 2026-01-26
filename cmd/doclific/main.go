@@ -59,7 +59,7 @@ var initCmd = &cobra.Command{
 
 var getCmd = &cobra.Command{
 	Use:   "get [key]",
-	Short: "Get configuration value (DEEPLINK_PREFIX, AI_PROVIDER, AI_MODEL, OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY)",
+	Short: "Get configuration value (DEEPLINK_PREFIX)",
 	Long:  `Get a configuration value from the Doclific config.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -73,13 +73,7 @@ var getCmd = &cobra.Command{
 		if value == "" {
 			fmt.Printf("📋 %s: (not set)\n", key)
 		} else {
-			// Mask API keys for security
-			if key == "OPENAI_API_KEY" || key == "ANTHROPIC_API_KEY" || key == "GOOGLE_API_KEY" {
-				masked := maskAPIKey(value)
-				fmt.Printf("📋 %s: %s\n", key, masked)
-			} else {
-				fmt.Printf("📋 %s: %s\n", key, value)
-			}
+			fmt.Printf("📋 %s: %s\n", key, value)
 		}
 	},
 }

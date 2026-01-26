@@ -1,0 +1,95 @@
+# Getting Started
+
+Welcome to Doclific! This guide will help you get started with the project, whether you're a user or a contributor.
+
+## What is Doclific?
+
+Doclific is an internal documentation tool that features a modern, Notion-like rich text editor for creating and managing your project documentation. Built with a powerful CLI and a beautiful web interface, Doclific makes it easy to document your codebase, APIs, and project knowledge.
+
+## Key Features
+
+* **Notion-like Editor**: Rich text editing experience with support for headings, lists, code blocks, and more
+* **Codebase Integration**: Reference code snippets directly from your repository
+* **Smart Navigation**: Organized folder structure for easy documentation management
+* **Fast & Local**: Runs entirely on your machine - no external services required
+* **Auto-Updates**: Automatically checks for and installs updates
+
+## Quick Start
+
+### Installation
+
+Install Doclific with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/muellerluke/doclific/main/scripts/install.sh | bash
+```
+
+This will:
+
+* Download the latest release for your platform
+* Install the binary to `/usr/local/bin` (or `~/.local/bin` if you don't have write permissions)
+* Set up the frontend build files
+* Automatically add skills for Cursor and Claude Code
+
+### Initialize a Project
+
+1. Navigate to your project directory:
+
+```bash
+cd /path/to/your/project
+```
+
+2. Initialize Doclific:
+
+```bash
+doclific init
+```
+
+This creates a `doclific` folder structure where your documentation will be stored.
+
+3. Start the server:
+
+```bash
+doclific
+```
+
+The server will automatically open your browser to the web interface at `http://localhost:6767`.
+
+## Project Structure
+
+After running `doclific init`, your project will have:
+
+```
+your-project/
+└── doclific/
+    └── [documentation folders]/
+        ├── config.json
+        └── content.mdx
+```
+
+Each documentation folder contains:
+
+* `config.json`: Metadata (title, icon, order)
+* `content.mdx`: The documentation content in MDX format
+
+## Using Cursor or Claude Code
+
+Doclific includes skills that allow Cursor and Claude Code to automatically generate documentation for your project. Simply ask:
+
+```
+Write documentation for the "Getting Started" document
+```
+
+or
+
+```
+Create an ERD diagram for my database schema
+```
+
+See the [Skills System](/31d11840-d56a-412c-bca2-4940defc5fae) documentation for more details.
+
+## Next Steps
+
+* Read the [Architecture Overview](/f2e2f681-dd1b-4961-8e3a-39935554f8a9) to understand how Doclific works
+* Check out the [CLI Reference](/899ef251-0e51-4e24-9e7e-693640ac9faf) for all available commands
+* Explore the [Development Guide](/9e1a18e9-28c7-4f6e-beba-300eac2ff2cb) if you want to contribute

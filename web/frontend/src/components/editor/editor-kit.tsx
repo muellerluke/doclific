@@ -33,7 +33,6 @@ import { TocKit } from './plugins/toc-kit';
 import { ToggleKit } from './plugins/toggle-kit';
 import { CodebaseSnippetPlugin } from './plugins/codebase-kit';
 import { ExcalidrawKit } from './plugins/excalidraw-kit';
-import { CustomAIKit } from './plugins/custom-ai-kit';
 import { ERDPlugin } from './plugins/erd-kit';
 
 export const EditorKit = [
@@ -83,7 +82,6 @@ export const EditorKit = [
 
   // Custom
   CodebaseSnippetPlugin,
-  CustomAIKit,
   ERDPlugin,
 ];
 
