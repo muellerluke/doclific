@@ -1,71 +1,131 @@
-Business Source License 1.1
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
 
-License
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-The Business Source License (this document, or the “License”) governs use of the
-Licensed Work.
+1. Definitions.
 
-Use of the Licensed Work is permitted only as explicitly granted below.
+"License" shall mean the terms and conditions for use, reproduction,
+and distribution as defined by Sections 1 through 9 of this document.
 
+"Licensor" shall mean the copyright owner or entity authorized by
+the copyright owner that is granting the License.
 
-Parameters
+"Legal Entity" shall mean the union of the acting entity and all
+other entities that control, are controlled by, or are under common
+control with that entity. For the purposes of this definition,
+"control" means (i) the power, direct or indirect, to cause the
+direction or management of such entity, whether by contract or
+otherwise, or (ii) ownership of fifty percent (50%) or more of the
+outstanding shares, or (iii) beneficial ownership of such entity.
 
-Licensor:
-Luke Mueller
+"You" (or "Your") shall mean an individual or Legal Entity
+exercising permissions granted by this License.
 
-Licensed Work:
-Doclific
+"Source" form shall mean the preferred form for making modifications,
+including but not limited to software source code, documentation
+source, and configuration files.
 
-Additional Use Grant:
-You may use, modify, and deploy the Licensed Work internally, including for
-commercial purposes, provided that you do not redistribute the Licensed Work,
-offer it as a hosted or managed service, sublicense it, white-label it, or
-distribute modified versions outside your organization.
+"Object" form shall mean any form resulting from mechanical
+transformation or translation of a Source form, including but
+not limited to compiled object code, generated documentation,
+and conversions to other media types.
 
-Change Date:
-2025-12-22
+"Work" shall mean the work of authorship, whether in Source or
+Object form, made available under the License, as indicated by a
+copyright notice that is included in or attached to the work.
 
-Change License:
-Apache License, Version 2.0
+"Derivative Works" shall mean any work, whether in Source or Object
+form, that is based on (or derived from) the Work and for which the
+editorial revisions, annotations, elaborations, or other modifications
+represent, as a whole, an original work of authorship. For the purposes
+of this License, Derivative Works shall not include works that remain
+separable from, or merely link (or bind by name) to the interfaces of,
+the Work and Derivative Works thereof.
 
+"Contribution" shall mean any work of authorship, including
+the original version of the Work and any modifications or additions
+to that Work or Derivative Works thereof, that is intentionally
+submitted to Licensor for inclusion in the Work by the copyright owner
+or by an individual or Legal Entity authorized to submit on behalf of
+the copyright owner. For the purposes of this definition, "submitted"
+means any form of electronic, verbal, or written communication sent
+to the Licensor or its representatives, including but not limited to
+communication on electronic mailing lists, source code control systems,
+and issue tracking systems that are managed by, or on behalf of, the
+Licensor for the purpose of discussing and improving the Work, but
+excluding communication that is conspicuously marked or otherwise
+designated in writing by the copyright owner as "Not a Contribution."
 
-Restrictions
+"Contributor" shall mean Licensor and any individual or Legal Entity
+on behalf of whom a Contribution has been received by Licensor and
+subsequently incorporated within the Work.
 
-Until the Change Date, you may not:
+2. Grant of Copyright License.
 
-- Redistribute, sell, sublicense, or otherwise transfer the Licensed Work
-- Offer the Licensed Work as a hosted, managed, or software-as-a-service offering
-- Distribute modified versions of the Licensed Work
-- White-label the Licensed Work or represent it as your own
+Subject to the terms and conditions of this License, each Contributor
+hereby grants to You a perpetual, worldwide, non-exclusive, no-charge,
+royalty-free, irrevocable copyright license to reproduce, prepare
+Derivative Works of, publicly display, publicly perform, sublicense,
+and distribute the Work and such Derivative Works in Source or Object form.
 
+3. Grant of Patent License.
 
-Change License
+Subject to the terms and conditions of this License, each Contributor
+hereby grants to You a perpetual, worldwide, non-exclusive, no-charge,
+royalty-free, irrevocable (except as stated in this section) patent
+license to make, have made, use, offer to sell, sell, import, and
+otherwise transfer the Work.
 
-On the Change Date specified above, this Licensed Work will automatically be made
-available under the Change License, and all restrictions above will cease to
-apply.
+4. Redistribution.
 
+You may reproduce and distribute copies of the Work or Derivative Works
+thereof in any medium, with or without modifications, and in Source or
+Object form, provided that You meet the following conditions:
 
-Trademarks
+(a) You must give any other recipients of the Work or Derivative Works
+a copy of this License; and
 
-This License does not grant permission to use the trade names, trademarks,
-service marks, or product names of the Licensor, except as required for reasonable
-and customary use in describing the origin of the Licensed Work.
+(b) You must cause any modified files to carry prominent notices
+stating that You changed the files; and
 
+(c) You must retain, in the Source form of any Derivative Works that
+You distribute, all copyright, patent, trademark, and attribution
+notices from the Source form of the Work, excluding those notices that
+do not pertain to any part of the Derivative Works; and
 
-Disclaimer of Warranty
+(d) If the Work includes a "NOTICE" text file as part of its
+distribution, then any Derivative Works that You distribute must include
+a readable copy of the attribution notices contained within such NOTICE
+file, excluding those notices that do not pertain to any part of the
+Derivative Works.
 
-The Licensed Work is provided “AS IS”, without warranty of any kind, express or
-implied, including but not limited to warranties of merchantability, fitness for
-a particular purpose, and non-infringement.
+5. Submission of Contributions.
 
+Unless You explicitly state otherwise, any Contribution intentionally
+submitted for inclusion in the Work by You to the Licensor shall be
+under the terms and conditions of this License.
 
-Limitation of Liability
+6. Trademarks.
 
-In no event shall the Licensor be liable for any claim, damages, or other
-liability arising from use of the Licensed Work.
+This License does not grant permission to use the trade names,
+trademarks, service marks, or product names of the Licensor.
 
+7. Disclaimer of Warranty.
 
-Copyright
+Unless required by applicable law or agreed to in writing, Licensor
+provides the Work on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+OF ANY KIND, either express or implied.
 
-Copyright © 2025 Luke Mueller
+8. Limitation of Liability.
+
+In no event and under no legal theory shall any Contributor be liable
+to You for damages arising from the use or inability to use the Work.
+
+9. Accepting Warranty or Additional Liability.
+
+While redistributing the Work or Derivative Works thereof, You may
+choose to offer support or warranty protection for a fee.
+
+END OF TERMS AND CONDITIONS

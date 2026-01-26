@@ -181,6 +181,10 @@ You can disable auto-updates by running the `update` command manually when neede
 
 ## License
 
+Copyright © 2026 Luke Mueller
+
+Licensed under the Apache License, Version 2.0
+
 See [LICENSE](LICENSE) file for details.
 
 ## Contributing
