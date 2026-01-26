@@ -183,7 +183,7 @@ if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
       # Install npm dependencies if package.json exists
       if [ -f "$skill_target/package.json" ]; then
         info "Installing dependencies for $skill_name"
-        (cd "$skill_target" && npm install)
+        (cd "$skill_target" && npm install --silent)
       fi
     fi
   }
