@@ -156,55 +156,10 @@ if [ -n "$BUILD_DIR_PATH" ] && [ -d "$BUILD_DIR_PATH" ]; then
 fi
 
 # -----------------------------
-# PATH check
-# -----------------------------
-if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
-  echo ""
-  echo "⚠️  $INSTALL_DIR is not on your PATH."
-  echo "Add this to your shell config:"
-  echo ""
-  echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
-fi
-
-# -----------------------------
-# Browser opener check (xdg-open / wslview)
-# -----------------------------
-if [ "$OS" = "linux" ]; then
-  if grep -qi "microsoft" /proc/version 2>/dev/null || \
-    grep -qi "microsoft" /proc/sys/kernel/osrelease 2>/dev/null; then
-    if ! command -v wslview >/dev/null 2>&1; then
-      echo ""
-      echo "⚠️  wslview not found. Doclific won't be able to open a browser tab automatically on WSL."
-      info "To enable this:"
-      info "  - Install wslu (e.g. 'sudo apt-get install -y wslu' or equivalent)."
-      info "  - Verify by running: wslview https://example.com"
-    fi
-  else
-    if ! command -v xdg-open >/dev/null 2>&1; then
-      echo ""
-      echo "⚠️  xdg-open not found. Doclific won't be able to open a browser tab automatically."
-      info "To enable this:"
-      info "  - Install xdg-utils (e.g. 'sudo apt-get install -y xdg-utils' or equivalent)."
-      info "  - Ensure a default browser is configured for your system."
-      info "  - Verify by running: xdg-open https://example.com"
-    fi
-  fi
-fi
-
-# -----------------------------
-# Cleanup
-# -----------------------------
-rm -f "$ARCHIVE" "$CHECKSUM_FILE"
-# Remove any extracted directories (but not the binary we just moved)
-find . -maxdepth 1 -type d -name "$BIN_NAME-*" -exec rm -rf {} + 2>/dev/null || true
-
-info "✅ $BIN_NAME installed successfully!"
-info "Run: $BIN_NAME --help"
-
-# -----------------------------
 # Add skills to ~/.cursor or ~/.claude
 # -----------------------------
 # Find skills directory in extracted archive (similar to build directory)
+# Do this BEFORE cleanup so we can access the extracted files
 SKILLS_DIR_PATH=""
 if [ -d "skills" ]; then
   SKILLS_DIR_PATH="skills"
@@ -278,3 +233,49 @@ if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
     echo ""
   fi
 fi
+
+# -----------------------------
+# PATH check
+# -----------------------------
+if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
+  echo ""
+  echo "⚠️  $INSTALL_DIR is not on your PATH."
+  echo "Add this to your shell config:"
+  echo ""
+  echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
+fi
+
+# -----------------------------
+# Browser opener check (xdg-open / wslview)
+# -----------------------------
+if [ "$OS" = "linux" ]; then
+  if grep -qi "microsoft" /proc/version 2>/dev/null || \
+    grep -qi "microsoft" /proc/sys/kernel/osrelease 2>/dev/null; then
+    if ! command -v wslview >/dev/null 2>&1; then
+      echo ""
+      echo "⚠️  wslview not found. Doclific won't be able to open a browser tab automatically on WSL."
+      info "To enable this:"
+      info "  - Install wslu (e.g. 'sudo apt-get install -y wslu' or equivalent)."
+      info "  - Verify by running: wslview https://example.com"
+    fi
+  else
+    if ! command -v xdg-open >/dev/null 2>&1; then
+      echo ""
+      echo "⚠️  xdg-open not found. Doclific won't be able to open a browser tab automatically."
+      info "To enable this:"
+      info "  - Install xdg-utils (e.g. 'sudo apt-get install -y xdg-utils' or equivalent)."
+      info "  - Ensure a default browser is configured for your system."
+      info "  - Verify by running: xdg-open https://example.com"
+    fi
+  fi
+fi
+
+# -----------------------------
+# Cleanup
+# -----------------------------
+rm -f "$ARCHIVE" "$CHECKSUM_FILE"
+# Remove any extracted directories (but not the binary we just moved)
+find . -maxdepth 1 -type d -name "$BIN_NAME-*" -exec rm -rf {} + 2>/dev/null || true
+
+info "✅ $BIN_NAME installed successfully!"
+info "Run: $BIN_NAME --help"
