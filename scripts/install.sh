@@ -209,22 +209,50 @@ info "Run: $BIN_NAME --help"
 # Add skills to ~/.cursor or ~/.claude
 # -----------------------------
 if [ -d "$SKILLS_DIR" ]; then
+  # Function to install a skill to a target directory
+  install_skill() {
+    local skill_name="$1"
+    local target_dir="$2"
+    local skill_source="$SKILLS_DIR/$skill_name"
+    local skill_target="$target_dir/$skill_name"
+    
+    if [ -d "$skill_source" ]; then
+      info "Installing skill: $skill_name"
+      cp -r "$skill_source" "$skill_target"
+      
+      # Install npm dependencies if package.json exists
+      if [ -f "$skill_target/package.json" ]; then
+        info "Installing dependencies for $skill_name"
+        (cd "$skill_target" && npm install)
+      fi
+    fi
+  }
+  
+  # Install to ~/.cursor/skills if ~/.cursor exists
   if [ -d ~/.cursor ]; then
     info "Adding skills to ~/.cursor/skills"
     mkdir -p ~/.cursor/skills
-    cp -r "$SKILLS_DIR"/* ~/.cursor/skills/
-    # install dependencies
-    cd ~/.cursor/skills/generate-doclific-erd-json/
-    npm install
-    cd -
+    
+    # Install each skill individually
+    for skill in "$SKILLS_DIR"/*; do
+      if [ -d "$skill" ]; then
+        skill_name="$(basename "$skill")"
+        install_skill "$skill_name" ~/.cursor/skills
+      fi
+    done
   fi
   
+  # Install to ~/.claude/skills if ~/.claude exists
   if [ -d ~/.claude ]; then
     info "Adding skills to ~/.claude/skills"
     mkdir -p ~/.claude/skills
-    cp -r "$SKILLS_DIR"/* ~/.claude/skills/
-    # install dependencies
-    cd ~/.claude/skills/generate-doclific-erd-json/
-    npm install
+    
+    # Install each skill individually
+    for skill in "$SKILLS_DIR"/*; do
+      if [ -d "$skill" ]; then
+        skill_name="$(basename "$skill")"
+        install_skill "$skill_name" ~/.claude/skills
+      fi
+    done
   fi
 fi
