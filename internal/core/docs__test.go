@@ -223,7 +223,7 @@ func TestCreateDoc(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read content.mdx: %v", err)
 	}
-	expectedContent := "# Hello World\n"
+	expectedContent := "# Test Document\n"
 	if string(content) != expectedContent {
 		t.Errorf("CreateDoc() content.mdx = %q, want %q", string(content), expectedContent)
 	}
