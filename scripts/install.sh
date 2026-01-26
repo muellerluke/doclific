@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# Capture script directory before any cd commands
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILLS_DIR="$REPO_ROOT/skills"
-
 # -----------------------------
 # Config
 # -----------------------------
@@ -209,12 +204,21 @@ info "Run: $BIN_NAME --help"
 # -----------------------------
 # Add skills to ~/.cursor or ~/.claude
 # -----------------------------
-if [ -d "$SKILLS_DIR" ]; then
+# Find skills directory in extracted archive (similar to build directory)
+SKILLS_DIR_PATH=""
+if [ -d "skills" ]; then
+  SKILLS_DIR_PATH="skills"
+else
+  # Look for skills directory in extracted subdirectory
+  SKILLS_DIR_PATH="$(find . -type d -name "skills" -not -path "*/.*" | head -n 1)"
+fi
+
+if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
   # Function to install a skill to a target directory
   install_skill() {
     local skill_name="$1"
     local target_dir="$2"
-    local skill_source="$SKILLS_DIR/$skill_name"
+    local skill_source="$SKILLS_DIR_PATH/$skill_name"
     local skill_target="$target_dir/$skill_name"
     
     if [ -d "$skill_source" ]; then
@@ -235,7 +239,7 @@ if [ -d "$SKILLS_DIR" ]; then
     mkdir -p ~/.cursor/skills
     
     # Install each skill individually
-    for skill in "$SKILLS_DIR"/*; do
+    for skill in "$SKILLS_DIR_PATH"/*; do
       if [ -d "$skill" ]; then
         skill_name="$(basename "$skill")"
         install_skill "$skill_name" ~/.cursor/skills
@@ -249,7 +253,7 @@ if [ -d "$SKILLS_DIR" ]; then
     mkdir -p ~/.claude/skills
     
     # Install each skill individually
-    for skill in "$SKILLS_DIR"/*; do
+    for skill in "$SKILLS_DIR_PATH"/*; do
       if [ -d "$skill" ]; then
         skill_name="$(basename "$skill")"
         install_skill "$skill_name" ~/.claude/skills
