@@ -151,4 +151,4 @@ If you find a bug, please create an issue including:
 
 ## 📄 License
 
-By contributing, you agree that your contributions will be licensed under the project's **Business Source License 1.1** (which converts to Apache 2.0). See `LICENSE` for details.
+By contributing, you agree that your contributions will be licensed under the Apache 2.0 license. See `LICENSE` for details.
