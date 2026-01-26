@@ -233,6 +233,8 @@ if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
     fi
   }
   
+  SKILLS_INSTALLED=false
+  
   # Install to ~/.cursor/skills if ~/.cursor exists
   if [ -d ~/.cursor ]; then
     info "Adding skills to ~/.cursor/skills"
@@ -245,6 +247,7 @@ if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
         install_skill "$skill_name" ~/.cursor/skills
       fi
     done
+    SKILLS_INSTALLED=true
   fi
   
   # Install to ~/.claude/skills if ~/.claude exists
@@ -259,5 +262,19 @@ if [ -n "$SKILLS_DIR_PATH" ] && [ -d "$SKILLS_DIR_PATH" ]; then
         install_skill "$skill_name" ~/.claude/skills
       fi
     done
+    SKILLS_INSTALLED=true
+  fi
+  
+  # Warn if skills couldn't be installed
+  if [ "$SKILLS_INSTALLED" = false ]; then
+    echo ""
+    echo "⚠️  Could not find ~/.cursor or ~/.claude directories to install skills."
+    echo "To manually install skills:"
+    echo "  1. Clone or download the Doclific repository"
+    echo "  2. Copy the skills from the 'skills/' directory"
+    echo "  3. Add them to your AI agent's skills directory:"
+    echo "     - For Cursor: ~/.cursor/skills/"
+    echo "     - For Claude Code: ~/.claude/skills/"
+    echo ""
   fi
 fi
