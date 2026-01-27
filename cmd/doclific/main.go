@@ -208,15 +208,6 @@ var checkCmd = &cobra.Command{
 		} else if !fix && len(result.StaleLineNumbers) > 0 {
 			fmt.Printf("\n💡 Run 'doclific check --fix' to automatically update line numbers\n")
 		}
-
-		// Exit with non-zero status if there are issues
-		hasErrors := len(result.Errors) > 0
-		hasUnfixedStaleLines := !fix && len(result.StaleLineNumbers) > 0
-		hasContentChanges := len(result.NeedsReview) > 0
-
-		if hasErrors || hasUnfixedStaleLines || hasContentChanges {
-			os.Exit(1)
-		}
 	},
 }
 
