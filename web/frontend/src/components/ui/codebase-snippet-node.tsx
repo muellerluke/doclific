@@ -2,9 +2,9 @@ import type { PlateElementProps } from 'platejs/react';
 import type { CodebaseSnippetElementType } from '@/components/editor/plugins/codebase-kit';
 import { useQuery } from '@tanstack/react-query';
 import { createHighlighter, type Highlighter } from 'shiki';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTheme } from '@/components/theme-provider';
-import { Copy, Settings } from 'lucide-react';
+import { Copy, Settings, AlertTriangle, Check } from 'lucide-react';
 import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
@@ -41,6 +41,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     const showFileSelector = element.showFileSelector;
     const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
     const [highlightedCode, setHighlightedCode] = useState<string>('');
+    const hasUpdatedLines = useRef(false);
 
     const prefixQuery = useQuery({
         queryKey: ["codebase", "prefix"],
@@ -49,11 +50,55 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         staleTime: Infinity,
     })
 
+    // Include tracking params in the query
+    // Note: contentHash is intentionally excluded from queryKey - it's only used for comparison
+    // and changing it (e.g., when marking reviewed) shouldn't trigger a refetch
     const fileContents = useQuery({
-        queryKey: ["codebase", "get-file-contents", element.filePath],
-        queryFn: () => getFileContents(element.filePath || ''),
+        queryKey: ["codebase", "get-file-contents", element.filePath, element.lineStart, element.lineEnd, element.baseCommit],
+        queryFn: () => getFileContents(element.filePath || '', {
+            lineStart: element.lineStart,
+            lineEnd: element.lineEnd,
+            baseCommit: element.baseCommit,
+            contentHash: element.contentHash,
+        }),
         enabled: element.filePath !== undefined && element.filePath.length > 0,
     })
+
+    // Reset hasUpdatedLines when file/lines change (user selected new snippet params)
+    useEffect(() => {
+        hasUpdatedLines.current = false;
+    }, [element.filePath, element.lineStart, element.lineEnd]);
+
+    // Update element when tracking info changes (e.g., line numbers shifted)
+    useEffect(() => {
+        if (!fileContents.data) return;
+        if (hasUpdatedLines.current) return;
+
+        const { newLineStart, newLineEnd, newBaseCommit, newContentHash, needsReview } = fileContents.data;
+
+        // Check if we need to update the element
+        const lineStartChanged = newLineStart !== undefined && String(newLineStart) !== element.lineStart;
+        const lineEndChanged = newLineEnd !== undefined && String(newLineEnd) !== element.lineEnd;
+        const commitChanged = newBaseCommit !== undefined && newBaseCommit !== element.baseCommit;
+        const needsReviewChanged = needsReview !== undefined && String(needsReview) !== element.needsReview;
+
+        if (lineStartChanged || lineEndChanged || commitChanged || needsReviewChanged) {
+            hasUpdatedLines.current = true;
+            const updates: Partial<CodebaseSnippetElementType> = {};
+
+            if (lineStartChanged) updates.lineStart = String(newLineStart);
+            if (lineEndChanged) updates.lineEnd = String(newLineEnd);
+            if (commitChanged) updates.baseCommit = newBaseCommit;
+            if (needsReviewChanged) updates.needsReview = String(needsReview);
+
+            // Only update hash if this is a new snippet (no existing hash)
+            if (!element.contentHash && newContentHash) {
+                updates.contentHash = newContentHash;
+            }
+
+            editor.tf.setNodes(updates, { at: element });
+        }
+    }, [fileContents.data, element, editor])
 
     const language = getLanguageFromPath(element.filePath);
 
@@ -151,8 +196,21 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         toast.success('Copied to clipboard');
     }
 
+    const handleMarkReviewed = () => {
+        // Update the content hash to the current content's hash and clear the review flag
+        if (fileContents.data?.newContentHash) {
+            editor.tf.setNodes({
+                contentHash: fileContents.data.newContentHash,
+                needsReview: 'false',
+            }, { at: element });
+            toast.success('Snippet marked as reviewed');
+        }
+    }
+
+    const needsReview = element.needsReview === 'true';
+
     return (
-        <div contentEditable={false} {...attributes} className="codebase-snippet my-4 rounded-lg border overflow-hidden">
+        <div contentEditable={false} {...attributes} className={`codebase-snippet my-4 rounded-lg border overflow-hidden ${needsReview ? 'border-yellow-500' : ''}`}>
             <div className="bg-muted px-4 py-2 border-b flex justify-between items-center">
                 <div className='flex items-center gap-2'>
                     <a href={`${prefixQuery.data || 'vscode'}://file/${fileContents.data?.fullPath || ''}:${element.lineStart}`}>
@@ -164,10 +222,28 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                     >
                         <Settings className='size-4 text-muted-foreground' />
                     </button>
+                    {needsReview && (
+                        <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
+                            <AlertTriangle className="size-4" />
+                            <span className="text-xs font-medium">Code changed - review needed</span>
+                        </div>
+                    )}
                 </div>
-                <button className='bg-transparent border-none p-0 m-0 cursor-pointer' onClick={handleCopy}>
-                    <Copy className='size-4 text-muted-foreground' />
-                </button>
+                <div className="flex items-center gap-2">
+                    {needsReview && (
+                        <button
+                            className='bg-transparent border-none p-0 m-0 cursor-pointer flex items-center gap-1 text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400'
+                            onClick={handleMarkReviewed}
+                            title="Mark as reviewed"
+                        >
+                            <Check className='size-4' />
+                            <span className="text-xs font-medium">Mark Reviewed</span>
+                        </button>
+                    )}
+                    <button className='bg-transparent border-none p-0 m-0 cursor-pointer' onClick={handleCopy}>
+                        <Copy className='size-4 text-muted-foreground' />
+                    </button>
+                </div>
             </div>
             <div className="relative">
                 {(fileContents.isLoading || (!fileContents.isLoading && !highlightedCode && element.filePath !== '')) ? (
@@ -193,11 +269,17 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                 open={showFileSelector || false}
                 onClose={() => editor.tf.setNodes({ showFileSelector: false }, { at: element })}
                 onSelect={(filePath, startLine, endLine) => {
+                    // When user explicitly selects new file/lines, clear the old hash
+                    // and reset needsReview. The new hash will be set by useEffect
+                    // after the query with new params completes.
                     editor.tf.setNodes(
                         {
                             filePath,
                             lineStart: String(startLine),
                             lineEnd: String(endLine),
+                            contentHash: '', // Clear - will be set fresh after fetch
+                            baseCommit: '', // Clear - will be set fresh after fetch
+                            needsReview: 'false',
                         },
                         { at: element }
                     );

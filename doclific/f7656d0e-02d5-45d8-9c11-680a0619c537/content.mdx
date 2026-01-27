@@ -4,14 +4,14 @@ The Doclific frontend is a modern React application built with TypeScript, provi
 
 ## Technology Stack
 
-- **React 18**: UI framework
-- **TypeScript**: Type safety
-- **Vite**: Build tool and dev server
-- **React Router**: Client-side routing
-- **TanStack Query**: Data fetching and caching
-- **TipTap**: Rich text editor
-- **Tailwind CSS**: Styling
-- **shadcn/ui**: UI component library
+* **React 18**: UI framework
+* **TypeScript**: Type safety
+* **Vite**: Build tool and dev server
+* **React Router**: Client-side routing
+* **TanStack Query**: Data fetching and caching
+* **TipTap**: Rich text editor
+* **Tailwind CSS**: Styling
+* **shadcn/ui**: UI component library
 
 ## Project Structure
 
@@ -34,25 +34,29 @@ web/frontend/
 
 ### App Sidebar
 
-<CodebaseSnippet filePath="web/frontend/src/components/app-sidebar.tsx" lineStart="293" lineEnd="315">
+<CodebaseSnippet filePath="web/frontend/src/components/app-sidebar.tsx" lineStart="293" lineEnd="316" baseCommit="127aa75b32d6b8b7fc499091a26e6f27a91b0325" contentHash="4bd35223bb314c6ac8f59ef1728abf17cd28c71792da9147d99dd2bc73df5f6c" needsReview="false">
+
 </CodebaseSnippet>
 
 The sidebar provides:
-- Document navigation
-- Drag-and-drop reordering
-- Document creation and deletion
-- Git repository information
+
+* Document navigation
+* Drag-and-drop reordering
+* Document creation and deletion
+* Git repository information
 
 ### Rich Text Editor
 
-<CodebaseSnippet filePath="web/frontend/src/components/editor/editor-kit.tsx" lineStart="1" lineEnd="50">
+<CodebaseSnippet filePath="web/frontend/src/components/editor/editor-kit.tsx" lineStart="1" lineEnd="50" baseCommit="127aa75b32d6b8b7fc499091a26e6f27a91b0325" contentHash="53fc0089f62a6afe8bef31e9fe32e0a1f85b114a4aa433cad83088ebfc6b1f63" needsReview="false">
+
 </CodebaseSnippet>
 
 The editor is built with TipTap and supports:
-- Markdown syntax
-- Custom MDX components
-- Code snippets
-- ERD diagrams
+
+* Markdown syntax
+* Custom MDX components
+* Code snippets
+* ERD diagrams
 
 ### Custom MDX Components
 
@@ -103,20 +107,22 @@ npm run lint
 
 The frontend communicates with the backend through REST APIs:
 
-<CodebaseSnippet filePath="web/frontend/src/api/docs.ts" lineStart="1" lineEnd="30">
+<CodebaseSnippet filePath="web/frontend/src/api/docs.ts" lineStart="1" lineEnd="30" baseCommit="127aa75b32d6b8b7fc499091a26e6f27a91b0325" contentHash="c9ee849e208849b6cd730a04875fba720947d1526b66d04613d740ecb23d1ba4" needsReview="false">
+
 </CodebaseSnippet>
 
 All API calls use TanStack Query for:
-- Automatic caching
-- Background refetching
-- Optimistic updates
-- Error handling
+
+* Automatic caching
+* Background refetching
+* Optimistic updates
+* Error handling
 
 ## State Management
 
-- **TanStack Query**: Server state (documents, git info)
-- **React State**: Local UI state (sidebar expansion, editor content)
-- **React Router**: URL state and navigation
+* **TanStack Query**: Server state (documents, git info)
+* **React State**: Local UI state (sidebar expansion, editor content)
+* **React Router**: URL state and navigation
 
 ## Styling
 

@@ -67,14 +67,27 @@ export const MarkdownKit = [
         },
         [CodebaseSnippetType]: {
           serialize: (slateNode) => {
+            const attributes = [
+              { type: 'mdxJsxAttribute', name: 'filePath', value: slateNode.filePath || '' },
+              { type: 'mdxJsxAttribute', name: 'lineStart', value: String(slateNode.lineStart || '') },
+              { type: 'mdxJsxAttribute', name: 'lineEnd', value: String(slateNode.lineEnd || '') },
+            ];
+
+            // Add tracking attributes if they exist
+            if (slateNode.baseCommit) {
+              attributes.push({ type: 'mdxJsxAttribute', name: 'baseCommit', value: slateNode.baseCommit });
+            }
+            if (slateNode.contentHash) {
+              attributes.push({ type: 'mdxJsxAttribute', name: 'contentHash', value: slateNode.contentHash });
+            }
+            if (slateNode.needsReview) {
+              attributes.push({ type: 'mdxJsxAttribute', name: 'needsReview', value: slateNode.needsReview });
+            }
+
             return {
               type: 'mdxJsxFlowElement',
               name: 'CodebaseSnippet', // MDX tag name
-              attributes: [
-                { type: 'mdxJsxAttribute', name: 'filePath', value: slateNode.filePath || '' },
-                { type: 'mdxJsxAttribute', name: 'lineStart', value: String(slateNode.lineStart || '') },
-                { type: 'mdxJsxAttribute', name: 'lineEnd', value: String(slateNode.lineEnd || '') },
-              ],
+              attributes,
               children: [{ type: 'text', value: '' }],
             };
           },
@@ -91,6 +104,9 @@ export const MarkdownKit = [
               filePath: getAttr('filePath'),
               lineStart: getAttr('lineStart'),
               lineEnd: getAttr('lineEnd'),
+              baseCommit: getAttr('baseCommit'),
+              contentHash: getAttr('contentHash'),
+              needsReview: getAttr('needsReview'),
               children: [{ text: '' }], // Required for void elements
             };
           }

@@ -14,6 +14,19 @@ export interface FileNode {
 export interface FileContentsResponse {
 	contents: string;
 	fullPath: string;
+	// Snippet tracking fields (only present when tracking params are provided)
+	newLineStart?: number;
+	newLineEnd?: number;
+	newBaseCommit?: string;
+	newContentHash?: string;
+	needsReview?: boolean;
+}
+
+export interface SnippetTrackingParams {
+	lineStart?: string;
+	lineEnd?: string;
+	baseCommit?: string;
+	contentHash?: string;
 }
 
 /**
@@ -43,11 +56,20 @@ export async function getFolderContents(filePath: string): Promise<FileNode[]> {
 /**
  * Get contents of a file
  * @param filePath - The relative path to the file
- * @returns Promise resolving to file contents and full path
+ * @param tracking - Optional snippet tracking parameters
+ * @returns Promise resolving to file contents and full path (with tracking info if params provided)
  */
-export async function getFileContents(filePath: string): Promise<FileContentsResponse> {
+export async function getFileContents(filePath: string, tracking?: SnippetTrackingParams): Promise<FileContentsResponse> {
 	const url = new URL(`${API_BASE_URL}/codebase/file`);
 	url.searchParams.set('filePath', filePath);
+
+	// Add tracking params if provided
+	if (tracking) {
+		if (tracking.lineStart) url.searchParams.set('lineStart', tracking.lineStart);
+		if (tracking.lineEnd) url.searchParams.set('lineEnd', tracking.lineEnd);
+		if (tracking.baseCommit) url.searchParams.set('baseCommit', tracking.baseCommit);
+		if (tracking.contentHash) url.searchParams.set('contentHash', tracking.contentHash);
+	}
 
 	const response = await fetch(url.toString(), {
 		method: 'GET',

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"doclific/internal/config"
 	"doclific/internal/core"
@@ -194,6 +196,12 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get optional snippet tracking parameters
+	lineStartStr := r.URL.Query().Get("lineStart")
+	lineEndStr := r.URL.Query().Get("lineEnd")
+	baseCommit := r.URL.Query().Get("baseCommit")
+	storedHash := r.URL.Query().Get("contentHash")
+
 	contents, err := core.GetFileContents(filePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -213,8 +221,72 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 		"fullPath": fullPath,
 	}
 
+	// If snippet tracking params provided, include tracking info in response
+	if lineStartStr != "" && lineEndStr != "" {
+		lineStart, _ := strconv.Atoi(lineStartStr)
+		lineEnd, _ := strconv.Atoi(lineEndStr)
+
+		snippet := core.SnippetInfo{
+			FilePath:    filePath,
+			LineStart:   lineStart,
+			LineEnd:     lineEnd,
+			BaseCommit:  baseCommit,
+			ContentHash: storedHash,
+		}
+
+		validated, err := core.ValidateSnippet(snippet)
+		if err != nil {
+			// If validation fails, still return content but without tracking info
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(result)
+			return
+		}
+
+		// Get the current content hash for the (potentially updated) line range
+		snippetContent := extractLinesFromContent(contents, validated.LineStart, validated.LineEnd)
+		currentHash := core.HashContent(snippetContent)
+
+		// Determine if review is needed: either ValidateSnippet flagged it (commit changed + hash differs)
+		// OR the stored hash doesn't match the current hash (content changed in working directory)
+		needsReview := validated.NeedsReview
+		if storedHash != "" && storedHash != currentHash {
+			needsReview = true
+		}
+
+		result["newLineStart"] = validated.LineStart
+		result["newLineEnd"] = validated.LineEnd
+		result["newBaseCommit"] = validated.BaseCommit
+		result["newContentHash"] = currentHash
+		result["needsReview"] = needsReview
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+}
+
+// extractLinesFromContent extracts lines from content between start and end (1-indexed, inclusive)
+func extractLinesFromContent(content string, start, end int) string {
+	lines := strings.Split(content, "\n")
+
+	if start < 1 {
+		start = 1
+	}
+	if end < 1 || end > len(lines) {
+		end = len(lines)
+	}
+	if start > len(lines) {
+		return ""
+	}
+
+	// Convert to 0-indexed
+	startIdx := start - 1
+	endIdx := end
+
+	if endIdx > len(lines) {
+		endIdx = len(lines)
+	}
+
+	return strings.Join(lines[startIdx:endIdx], "\n")
 }
 
 func handleCodebaseGetPrefix(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,9 @@ export interface CodebaseSnippetElementType {
     filePath: string;
     lineStart?: string;
     lineEnd?: string;
+    baseCommit?: string;
+    contentHash?: string;
+    needsReview?: string; // "true" or "false" as string for MDX
     showFileSelector?: boolean;
     children: [{ text: '' }];
     [key: string]: any;
