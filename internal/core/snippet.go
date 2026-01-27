@@ -190,15 +190,15 @@ func ValidateSnippet(snippet SnippetInfo) (SnippetInfo, error) {
 		return updated, fmt.Errorf("failed to get current commit: %w", err)
 	}
 
+	// Get file contents
+	content, err := GetFileContents(snippet.FilePath)
+	if err != nil {
+		return updated, fmt.Errorf("failed to get file contents: %w", err)
+	}
+
 	// If baseCommit is empty, this is a new snippet - initialize it
 	if snippet.BaseCommit == "" {
 		updated.BaseCommit = currentCommit
-
-		// Get file contents and generate hash
-		content, err := GetFileContents(snippet.FilePath)
-		if err != nil {
-			return updated, fmt.Errorf("failed to get file contents: %w", err)
-		}
 
 		snippetContent := extractLines(content, snippet.LineStart, snippet.LineEnd)
 		updated.ContentHash = HashContent(snippetContent)
@@ -207,41 +207,67 @@ func ValidateSnippet(snippet SnippetInfo) (SnippetInfo, error) {
 		return updated, nil
 	}
 
-	// Calculate new line positions using git diff from baseCommit to working directory
-	// This captures both committed changes AND uncommitted working directory changes
-	newLineStart, newLineEnd, err := CalculateNewLineRangeToWorkingDir(
-		snippet.FilePath,
-		snippet.BaseCommit,
-		snippet.LineStart,
-		snippet.LineEnd,
-	)
-	if err != nil {
-		// If diff fails (e.g., file was renamed), keep original lines
-		// but still update commit and check hash
-		newLineStart = snippet.LineStart
-		newLineEnd = snippet.LineEnd
+	// First, check if content at CURRENT line numbers already matches the hash
+	currentContent := extractLines(content, snippet.LineStart, snippet.LineEnd)
+	currentHash := HashContent(currentContent)
+
+	if snippet.ContentHash != "" && snippet.ContentHash == currentHash {
+		// Content at current lines matches - no changes needed
+		updated.BaseCommit = currentCommit
+		return updated, nil
 	}
 
-	updated.LineStart = newLineStart
-	updated.LineEnd = newLineEnd
+	// Content doesn't match at current lines - search for where it moved
+	// Check line ranges shifted up and down (up to 100 lines in each direction)
+	snippetLength := snippet.LineEnd - snippet.LineStart
+	totalLines := len(strings.Split(content, "\n"))
+	maxSearchDistance := 100
+
+	foundLineStart := 0
+	foundLineEnd := 0
+	found := false
+
+	for offset := 1; offset <= maxSearchDistance && !found; offset++ {
+		// Check shifted down (lines added above)
+		downStart := snippet.LineStart + offset
+		downEnd := downStart + snippetLength
+		if downEnd <= totalLines {
+			downContent := extractLines(content, downStart, downEnd)
+			downHash := HashContent(downContent)
+			if snippet.ContentHash == downHash {
+				foundLineStart = downStart
+				foundLineEnd = downEnd
+				found = true
+				break
+			}
+		}
+
+		// Check shifted up (lines removed above)
+		upStart := snippet.LineStart - offset
+		upEnd := upStart + snippetLength
+		if upStart >= 1 {
+			upContent := extractLines(content, upStart, upEnd)
+			upHash := HashContent(upContent)
+			if snippet.ContentHash == upHash {
+				foundLineStart = upStart
+				foundLineEnd = upEnd
+				found = true
+				break
+			}
+		}
+	}
+
 	updated.BaseCommit = currentCommit
 
-	// Get current content and hash
-	content, err := GetFileContents(snippet.FilePath)
-	if err != nil {
-		return updated, fmt.Errorf("failed to get file contents: %w", err)
-	}
-
-	snippetContent := extractLines(content, newLineStart, newLineEnd)
-	newHash := HashContent(snippetContent)
-
-	// Check if content actually changed (ignoring whitespace)
-	if snippet.ContentHash != "" && snippet.ContentHash != newHash {
+	if found {
+		// Found the content at a different position - just update line numbers
+		updated.LineStart = foundLineStart
+		updated.LineEnd = foundLineEnd
+		updated.NeedsReview = false
+	} else {
+		// Content not found at any nearby position - it has been modified
 		updated.NeedsReview = true
 	}
-
-	// Don't update hash here - only update when user verifies
-	// But we need to return what the new hash would be for the API response
 
 	return updated, nil
 }
@@ -273,16 +299,17 @@ func extractLines(content string, start, end int) string {
 
 // CheckSnippetsResult holds the results of checking all snippets
 type CheckSnippetsResult struct {
-	FilesScanned   int
-	SnippetsFound  int
-	LinesUpdated   int
-	NeedsReview    []SnippetReviewInfo
-	Errors         []string
+	FilesScanned     int
+	SnippetsFound    int
+	LinesUpdated     int
+	StaleLineNumbers []SnippetReviewInfo
+	NeedsReview      []SnippetReviewInfo
+	Errors           []string
 }
 
 // SnippetReviewInfo holds info about a snippet that needs review
 type SnippetReviewInfo struct {
-	DocPath   string
+	DocTitle  string
 	FilePath  string
 	LineStart int
 	LineEnd   int
@@ -292,8 +319,9 @@ type SnippetReviewInfo struct {
 // If fix is true, it will update the MDX files with corrected line numbers
 func CheckSnippets(fix bool) (*CheckSnippetsResult, error) {
 	result := &CheckSnippetsResult{
-		NeedsReview: []SnippetReviewInfo{},
-		Errors:      []string{},
+		StaleLineNumbers: []SnippetReviewInfo{},
+		NeedsReview:      []SnippetReviewInfo{},
+		Errors:           []string{},
 	}
 
 	// Get current working directory
@@ -352,17 +380,25 @@ func CheckSnippets(fix bool) (*CheckSnippetsResult, error) {
 				continue
 			}
 
+			// Get doc title from config.json in same directory (used for both stale and review)
+			docTitle := getDocTitle(mdxPath)
+
 			// Check if lines changed
 			if validated.LineStart != snippet.LineStart || validated.LineEnd != snippet.LineEnd {
 				result.LinesUpdated++
 				hasChanges = true
+				result.StaleLineNumbers = append(result.StaleLineNumbers, SnippetReviewInfo{
+					DocTitle:  docTitle,
+					FilePath:  validated.FilePath,
+					LineStart: validated.LineStart,
+					LineEnd:   validated.LineEnd,
+				})
 			}
 
-			// Check if needs review
+			// Check if needs review (content changed)
 			if validated.NeedsReview {
-				relPath, _ := filepath.Rel(cwd, mdxPath)
 				result.NeedsReview = append(result.NeedsReview, SnippetReviewInfo{
-					DocPath:   relPath,
+					DocTitle:  docTitle,
 					FilePath:  validated.FilePath,
 					LineStart: validated.LineStart,
 					LineEnd:   validated.LineEnd,
@@ -382,6 +418,24 @@ func CheckSnippets(fix bool) (*CheckSnippetsResult, error) {
 	}
 
 	return result, nil
+}
+
+// getDocTitle reads the title from config.json in the same directory as the mdx file
+func getDocTitle(mdxPath string) string {
+	configPath := filepath.Join(filepath.Dir(mdxPath), "config.json")
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		return filepath.Base(filepath.Dir(mdxPath))
+	}
+
+	// Simple JSON parsing for title field
+	titleRegex := regexp.MustCompile(`"title"\s*:\s*"([^"]*)"`)
+	match := titleRegex.FindSubmatch(content)
+	if len(match) >= 2 {
+		return string(match[1])
+	}
+
+	return filepath.Base(filepath.Dir(mdxPath))
 }
 
 // findMDXFiles recursively finds all content.mdx files in a directory

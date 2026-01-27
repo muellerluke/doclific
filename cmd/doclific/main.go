@@ -176,19 +176,23 @@ var checkCmd = &cobra.Command{
 		fmt.Printf("   Files scanned: %d\n", result.FilesScanned)
 		fmt.Printf("   Snippets found: %d\n", result.SnippetsFound)
 
-		if result.LinesUpdated > 0 {
+		if len(result.StaleLineNumbers) > 0 {
 			if fix {
-				fmt.Printf("   ✅ Lines updated: %d\n", result.LinesUpdated)
+				fmt.Printf("\n✅ Updated stale line numbers (%d):\n", len(result.StaleLineNumbers))
 			} else {
-				fmt.Printf("   📝 Lines need updating: %d\n", result.LinesUpdated)
+				fmt.Printf("\n📝 Stale line numbers (%d):\n", len(result.StaleLineNumbers))
+			}
+			for _, snippet := range result.StaleLineNumbers {
+				fmt.Printf("   - %s: %s (lines %d-%d)\n",
+					snippet.DocTitle, snippet.FilePath, snippet.LineStart, snippet.LineEnd)
 			}
 		}
 
 		if len(result.NeedsReview) > 0 {
-			fmt.Printf("\n⚠️  Snippets needing review (%d):\n", len(result.NeedsReview))
+			fmt.Printf("\n⚠️  Content changed - needs review (%d):\n", len(result.NeedsReview))
 			for _, snippet := range result.NeedsReview {
 				fmt.Printf("   - %s: %s (lines %d-%d)\n",
-					snippet.DocPath, snippet.FilePath, snippet.LineStart, snippet.LineEnd)
+					snippet.DocTitle, snippet.FilePath, snippet.LineStart, snippet.LineEnd)
 			}
 		}
 
@@ -199,10 +203,19 @@ var checkCmd = &cobra.Command{
 			}
 		}
 
-		if result.LinesUpdated == 0 && len(result.NeedsReview) == 0 && len(result.Errors) == 0 {
+		if len(result.StaleLineNumbers) == 0 && len(result.NeedsReview) == 0 && len(result.Errors) == 0 {
 			fmt.Printf("\n✅ All snippets are up to date!\n")
-		} else if !fix && result.LinesUpdated > 0 {
+		} else if !fix && len(result.StaleLineNumbers) > 0 {
 			fmt.Printf("\n💡 Run 'doclific check --fix' to automatically update line numbers\n")
+		}
+
+		// Exit with non-zero status if there are issues
+		hasErrors := len(result.Errors) > 0
+		hasUnfixedStaleLines := !fix && len(result.StaleLineNumbers) > 0
+		hasContentChanges := len(result.NeedsReview) > 0
+
+		if hasErrors || hasUnfixedStaleLines || hasContentChanges {
+			os.Exit(1)
 		}
 	},
 }

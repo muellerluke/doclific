@@ -176,10 +176,11 @@ func calculateLineRangeFromDiff(diffOutput string, oldStart, oldEnd int) (newSta
 		if change.OldCount == 0 {
 			// Pure addition - doesn't affect old line numbers directly
 			// but we need to check if it's before our range in the new file
-			if change.NewStart < oldStart+offsetBeforeStart {
+			// Use <= because adding AT the snippet start position pushes it down
+			if change.NewStart <= oldStart+offsetBeforeStart {
 				offsetBeforeStart += change.NewCount
 				offsetBeforeEnd += change.NewCount
-			} else if change.NewStart < oldEnd+offsetBeforeEnd {
+			} else if change.NewStart <= oldEnd+offsetBeforeEnd {
 				offsetBeforeEnd += change.NewCount
 			}
 			continue

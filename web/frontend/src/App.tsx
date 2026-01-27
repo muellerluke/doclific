@@ -9,6 +9,7 @@ import { useEffect } from "react"
 import { NoDocSelected } from "./pages/no-doc-selected"
 import { getPrefix } from "./api/codebase"
 
+
 /**
  * Checks if the current version is newer than the latest version
  * @param currentVersion - The current version as a string in the format "vx.x.x"
