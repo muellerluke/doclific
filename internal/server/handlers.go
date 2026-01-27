@@ -31,6 +31,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	// Codebase routes
 	mux.HandleFunc("GET /api/codebase/folder", handleCodebaseGetFolderContents)
 	mux.HandleFunc("GET /api/codebase/file", handleCodebaseGetFileContents)
+	mux.HandleFunc("GET /api/codebase/snippet", handleCodebaseGetSnippet)
 	mux.HandleFunc("GET /api/codebase/prefix", handleCodebaseGetPrefix)
 }
 
@@ -196,12 +197,6 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get optional snippet tracking parameters
-	lineStartStr := r.URL.Query().Get("lineStart")
-	lineEndStr := r.URL.Query().Get("lineEnd")
-	baseCommit := r.URL.Query().Get("baseCommit")
-	storedHash := r.URL.Query().Get("contentHash")
-
 	contents, err := core.GetFileContents(filePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -219,45 +214,6 @@ func handleCodebaseGetFileContents(w http.ResponseWriter, r *http.Request) {
 	result := map[string]interface{}{
 		"contents": contents,
 		"fullPath": fullPath,
-	}
-
-	// If snippet tracking params provided, include tracking info in response
-	if lineStartStr != "" && lineEndStr != "" {
-		lineStart, _ := strconv.Atoi(lineStartStr)
-		lineEnd, _ := strconv.Atoi(lineEndStr)
-
-		snippet := core.SnippetInfo{
-			FilePath:    filePath,
-			LineStart:   lineStart,
-			LineEnd:     lineEnd,
-			BaseCommit:  baseCommit,
-			ContentHash: storedHash,
-		}
-
-		validated, err := core.ValidateSnippet(snippet)
-		if err != nil {
-			// If validation fails, still return content but without tracking info
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(result)
-			return
-		}
-
-		// Get the current content hash for the (potentially updated) line range
-		snippetContent := extractLinesFromContent(contents, validated.LineStart, validated.LineEnd)
-		currentHash := core.HashContent(snippetContent)
-
-		// Determine if review is needed: either ValidateSnippet flagged it (commit changed + hash differs)
-		// OR the stored hash doesn't match the current hash (content changed in working directory)
-		needsReview := validated.NeedsReview
-		if storedHash != "" && storedHash != currentHash {
-			needsReview = true
-		}
-
-		result["newLineStart"] = validated.LineStart
-		result["newLineEnd"] = validated.LineEnd
-		result["newBaseCommit"] = validated.BaseCommit
-		result["newContentHash"] = currentHash
-		result["needsReview"] = needsReview
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -287,6 +243,174 @@ func extractLinesFromContent(content string, start, end int) string {
 	}
 
 	return strings.Join(lines[startIdx:endIdx], "\n")
+}
+
+func handleCodebaseGetSnippet(w http.ResponseWriter, r *http.Request) {
+	filePath := r.URL.Query().Get("filePath")
+	if filePath == "" {
+		http.Error(w, "filePath query parameter is required", http.StatusBadRequest)
+		return
+	}
+
+	lineStartStr := r.URL.Query().Get("lineStart")
+	lineEndStr := r.URL.Query().Get("lineEnd")
+	if lineStartStr == "" || lineEndStr == "" {
+		http.Error(w, "lineStart and lineEnd query parameters are required", http.StatusBadRequest)
+		return
+	}
+
+	lineStart, err := strconv.Atoi(lineStartStr)
+	if err != nil {
+		http.Error(w, "lineStart must be a valid integer", http.StatusBadRequest)
+		return
+	}
+	lineEnd, err := strconv.Atoi(lineEndStr)
+	if err != nil {
+		http.Error(w, "lineEnd must be a valid integer", http.StatusBadRequest)
+		return
+	}
+
+	storedHash := r.URL.Query().Get("contentHash")
+
+	// Get full file contents
+	fullContents, err := core.GetFileContents(filePath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fullPath := filepath.Join(cwd, filePath)
+
+	// If no stored hash, this is a new/initializing snippet
+	// Don't do diff adjustments - user selected these lines in the working directory as-is
+	if storedHash == "" {
+		snippetContent := extractLinesFromContent(fullContents, lineStart, lineEnd)
+		currentHash := core.HashContent(snippetContent)
+		currentCommit, _ := core.GetCurrentCommit()
+
+		result := map[string]interface{}{
+			"contents":       snippetContent,
+			"fullPath":       fullPath,
+			"lineStart":      lineStart,
+			"lineEnd":        lineEnd,
+			"baseCommit":     currentCommit,
+			"contentHash":    currentHash,
+			"needsReview":    false,
+			"linesAdjusted":  false,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// First, check if the content at the ORIGINAL lines matches the stored hash
+	originalSnippetContent := extractLinesFromContent(fullContents, lineStart, lineEnd)
+	originalHash := core.HashContent(originalSnippetContent)
+	snippetLength := lineEnd - lineStart
+
+	if storedHash == originalHash {
+		// Content matches at original lines - no adjustment needed
+		currentCommit, _ := core.GetCurrentCommit()
+
+		result := map[string]interface{}{
+			"contents":      originalSnippetContent,
+			"fullPath":      fullPath,
+			"lineStart":     lineStart,
+			"lineEnd":       lineEnd,
+			"baseCommit":    currentCommit,
+			"contentHash":   originalHash,
+			"needsReview":   false,
+			"linesAdjusted": false,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// Content doesn't match at original lines - search for where it moved
+	// Check line ranges shifted up and down (up to 100 lines in each direction)
+	currentCommit, _ := core.GetCurrentCommit()
+	maxSearchDistance := 100
+	totalLines := len(strings.Split(fullContents, "\n"))
+
+	foundLineStart := 0
+	foundLineEnd := 0
+	foundContent := ""
+	found := false
+
+	for offset := 1; offset <= maxSearchDistance && !found; offset++ {
+		// Check shifted down (lines added above)
+		downStart := lineStart + offset
+		downEnd := downStart + snippetLength
+		if downEnd <= totalLines {
+			downContent := extractLinesFromContent(fullContents, downStart, downEnd)
+			downHash := core.HashContent(downContent)
+			if storedHash == downHash {
+				foundLineStart = downStart
+				foundLineEnd = downEnd
+				foundContent = downContent
+				found = true
+				break
+			}
+		}
+
+		// Check shifted up (lines removed above)
+		upStart := lineStart - offset
+		upEnd := upStart + snippetLength
+		if upStart >= 1 {
+			upContent := extractLinesFromContent(fullContents, upStart, upEnd)
+			upHash := core.HashContent(upContent)
+			if storedHash == upHash {
+				foundLineStart = upStart
+				foundLineEnd = upEnd
+				foundContent = upContent
+				found = true
+				break
+			}
+		}
+	}
+
+	if found {
+		// Found the content at a different position
+		result := map[string]interface{}{
+			"contents":      foundContent,
+			"fullPath":      fullPath,
+			"lineStart":     foundLineStart,
+			"lineEnd":       foundLineEnd,
+			"baseCommit":    currentCommit,
+			"contentHash":   storedHash, // Hash matches, so use stored hash
+			"needsReview":   false,
+			"linesAdjusted": true,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// Content not found at any nearby position - it has been modified
+	// Return original lines but flag for review
+	result := map[string]interface{}{
+		"contents":      originalSnippetContent,
+		"fullPath":      fullPath,
+		"lineStart":     lineStart,
+		"lineEnd":       lineEnd,
+		"baseCommit":    currentCommit,
+		"contentHash":   originalHash,
+		"needsReview":   true,
+		"linesAdjusted": false,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 func handleCodebaseGetPrefix(w http.ResponseWriter, r *http.Request) {

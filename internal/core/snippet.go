@@ -207,16 +207,11 @@ func ValidateSnippet(snippet SnippetInfo) (SnippetInfo, error) {
 		return updated, nil
 	}
 
-	// If commit hasn't changed, no updates needed
-	if snippet.BaseCommit == currentCommit {
-		return updated, nil
-	}
-
-	// Commit changed - calculate new line positions using git diff
-	newLineStart, newLineEnd, err := CalculateNewLineRange(
+	// Calculate new line positions using git diff from baseCommit to working directory
+	// This captures both committed changes AND uncommitted working directory changes
+	newLineStart, newLineEnd, err := CalculateNewLineRangeToWorkingDir(
 		snippet.FilePath,
 		snippet.BaseCommit,
-		currentCommit,
 		snippet.LineStart,
 		snippet.LineEnd,
 	)

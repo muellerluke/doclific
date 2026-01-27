@@ -122,6 +122,16 @@ func GetFileDiff(filePath, fromCommit, toCommit string) (string, error) {
 	return string(output), nil
 }
 
+// GetFileDiffToWorkingDir gets the diff for a specific file from a commit to the working directory
+func GetFileDiffToWorkingDir(filePath, fromCommit string) (string, error) {
+	cmd := exec.Command("git", "diff", fromCommit, "--", filePath)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(output), nil
+}
+
 // CalculateNewLineRange adjusts line numbers based on git diff between commits
 // Takes the original line range and returns the new line range after applying changes
 func CalculateNewLineRange(filePath, fromCommit, toCommit string, oldStart, oldEnd int) (newStart, newEnd int, err error) {
@@ -130,6 +140,22 @@ func CalculateNewLineRange(filePath, fromCommit, toCommit string, oldStart, oldE
 		return oldStart, oldEnd, err
 	}
 
+	return calculateLineRangeFromDiff(diffOutput, oldStart, oldEnd)
+}
+
+// CalculateNewLineRangeToWorkingDir adjusts line numbers based on git diff from a commit to the working directory
+// This captures both committed and uncommitted changes
+func CalculateNewLineRangeToWorkingDir(filePath, fromCommit string, oldStart, oldEnd int) (newStart, newEnd int, err error) {
+	diffOutput, err := GetFileDiffToWorkingDir(filePath, fromCommit)
+	if err != nil {
+		return oldStart, oldEnd, err
+	}
+
+	return calculateLineRangeFromDiff(diffOutput, oldStart, oldEnd)
+}
+
+// calculateLineRangeFromDiff is the shared implementation for calculating new line ranges from diff output
+func calculateLineRangeFromDiff(diffOutput string, oldStart, oldEnd int) (newStart, newEnd int, err error) {
 	// If no diff, lines haven't changed
 	if strings.TrimSpace(diffOutput) == "" {
 		return oldStart, oldEnd, nil

@@ -8,7 +8,7 @@ import { Copy, Settings, AlertTriangle, Check } from 'lucide-react';
 import { FileSelector } from './file-selector';
 import { useEditorRef } from 'platejs/react';
 import { toast } from 'sonner';
-import { getFileContents, getPrefix } from '@/api/codebase';
+import { getSnippet, getPrefix } from '@/api/codebase';
 import { Spinner } from './spinner';
 
 // Singleton highlighter cache
@@ -41,7 +41,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
     const showFileSelector = element.showFileSelector;
     const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
     const [highlightedCode, setHighlightedCode] = useState<string>('');
-    const hasUpdatedLines = useRef(false);
+    const hasUpdatedMetadata = useRef(false);
 
     const prefixQuery = useQuery({
         queryKey: ["codebase", "prefix"],
@@ -50,55 +50,55 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         staleTime: Infinity,
     })
 
-    // Include tracking params in the query
-    // Note: contentHash is intentionally excluded from queryKey - it's only used for comparison
-    // and changing it (e.g., when marking reviewed) shouldn't trigger a refetch
-    const fileContents = useQuery({
-        queryKey: ["codebase", "get-file-contents", element.filePath, element.lineStart, element.lineEnd, element.baseCommit],
-        queryFn: () => getFileContents(element.filePath || '', {
-            lineStart: element.lineStart,
-            lineEnd: element.lineEnd,
+    // Fetch snippet content
+    // Only filePath, lineStart, lineEnd are in the key (user-controlled via FileSelector)
+    // baseCommit and contentHash are passed but not in key to avoid refetch loops
+    const snippetQuery = useQuery({
+        queryKey: ["codebase", "snippet", element.filePath, element.lineStart, element.lineEnd],
+        queryFn: () => getSnippet(element.filePath || '', {
+            lineStart: element.lineStart || '1',
+            lineEnd: element.lineEnd || '1',
             baseCommit: element.baseCommit,
             contentHash: element.contentHash,
         }),
         enabled: element.filePath !== undefined && element.filePath.length > 0,
     })
 
-    // Reset hasUpdatedLines when file/lines change (user selected new snippet params)
+    // Reset metadata flag when user changes snippet settings via FileSelector
     useEffect(() => {
-        hasUpdatedLines.current = false;
+        hasUpdatedMetadata.current = false;
     }, [element.filePath, element.lineStart, element.lineEnd]);
 
-    // Update element when tracking info changes (e.g., line numbers shifted)
+    // Update element metadata from server response
     useEffect(() => {
-        if (!fileContents.data) return;
-        if (hasUpdatedLines.current) return;
+        if (!snippetQuery.data) return;
+        if (hasUpdatedMetadata.current) return;
 
-        const { newLineStart, newLineEnd, newBaseCommit, newContentHash, needsReview } = fileContents.data;
+        const { baseCommit, contentHash, needsReview, lineStart, lineEnd, linesAdjusted } = snippetQuery.data;
 
-        // Check if we need to update the element
-        const lineStartChanged = newLineStart !== undefined && String(newLineStart) !== element.lineStart;
-        const lineEndChanged = newLineEnd !== undefined && String(newLineEnd) !== element.lineEnd;
-        const commitChanged = newBaseCommit !== undefined && newBaseCommit !== element.baseCommit;
-        const needsReviewChanged = needsReview !== undefined && String(needsReview) !== element.needsReview;
+        const commitChanged = baseCommit && baseCommit !== element.baseCommit;
+        const needsReviewChanged = String(needsReview) !== element.needsReview;
+        const needsHashInit = !element.contentHash && contentHash;
+        // Update line numbers if server found content at different position
+        const linesChanged = linesAdjusted && (
+            String(lineStart) !== element.lineStart || String(lineEnd) !== element.lineEnd
+        );
 
-        if (lineStartChanged || lineEndChanged || commitChanged || needsReviewChanged) {
-            hasUpdatedLines.current = true;
+        if (commitChanged || needsReviewChanged || needsHashInit || linesChanged) {
+            hasUpdatedMetadata.current = true;
             const updates: Partial<CodebaseSnippetElementType> = {};
 
-            if (lineStartChanged) updates.lineStart = String(newLineStart);
-            if (lineEndChanged) updates.lineEnd = String(newLineEnd);
-            if (commitChanged) updates.baseCommit = newBaseCommit;
+            if (commitChanged) updates.baseCommit = baseCommit;
             if (needsReviewChanged) updates.needsReview = String(needsReview);
-
-            // Only update hash if this is a new snippet (no existing hash)
-            if (!element.contentHash && newContentHash) {
-                updates.contentHash = newContentHash;
+            if (needsHashInit) updates.contentHash = contentHash;
+            if (linesChanged) {
+                updates.lineStart = String(lineStart);
+                updates.lineEnd = String(lineEnd);
             }
 
             editor.tf.setNodes(updates, { at: element });
         }
-    }, [fileContents.data, element, editor])
+    }, [snippetQuery.data, element, editor])
 
     const language = getLanguageFromPath(element.filePath);
 
@@ -118,35 +118,21 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         };
     }, [language, highlighter]);
 
+    // Get display line numbers from server response
+    const displayLineStart = snippetQuery.data?.lineStart ?? (element.lineStart ? parseInt(element.lineStart) : 1);
+    const displayLineEnd = snippetQuery.data?.lineEnd ?? (element.lineEnd ? parseInt(element.lineEnd) : 1);
+
     useEffect(() => {
-        if (!highlighter || !fileContents.data) return;
+        if (!highlighter || !snippetQuery.data) return;
 
         const highlightCode = async () => {
             if (!highlighter.getLoadedLanguages().includes(language)) {
                 await highlighter.loadLanguage(language as Parameters<Highlighter['loadLanguage']>[0]);
             }
 
-            const code = fileContents.data?.contents || '';
-            const startLine = element.lineStart ? parseInt(element.lineStart) : 1;
-            let endLine: number | undefined = undefined;
-            if (element.lineEnd) {
-                endLine = parseInt(element.lineEnd);
-            } else {
-                // If lineEnd is not specified, use the total number of lines as the maximum
-                endLine = code.split('\n').length;
-            }
-
-            let codeToHighlight = code;
-            let actualStartLine = startLine;
-            if (startLine !== undefined && endLine !== undefined) {
-                const lines = code.split('\n');
-                codeToHighlight = lines.slice(startLine - 1, endLine).join('\n');
-                actualStartLine = startLine;
-            } else if (startLine !== undefined) {
-                const lines = code.split('\n');
-                codeToHighlight = lines.slice(startLine - 1).join('\n');
-                actualStartLine = startLine;
-            }
+            // Server already returns only the snippet content
+            const codeToHighlight = snippetQuery.data?.contents || '';
+            const actualStartLine = displayLineStart;
 
             try {
                 const html = highlighter.codeToHtml(codeToHighlight, {
@@ -189,18 +175,18 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         }
 
         highlightCode();
-    }, [highlighter, fileContents.data, language, theme, element.lineStart, element.lineEnd]);
+    }, [highlighter, snippetQuery.data, language, theme, displayLineStart]);
 
     const handleCopy = () => {
-        void navigator.clipboard.writeText(fileContents.data?.contents || '');
+        void navigator.clipboard.writeText(snippetQuery.data?.contents || '');
         toast.success('Copied to clipboard');
     }
 
     const handleMarkReviewed = () => {
         // Update the content hash to the current content's hash and clear the review flag
-        if (fileContents.data?.newContentHash) {
+        if (snippetQuery.data?.contentHash) {
             editor.tf.setNodes({
-                contentHash: fileContents.data.newContentHash,
+                contentHash: snippetQuery.data.contentHash,
                 needsReview: 'false',
             }, { at: element });
             toast.success('Snippet marked as reviewed');
@@ -213,7 +199,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
         <div contentEditable={false} {...attributes} className={`codebase-snippet my-4 rounded-lg border overflow-hidden ${needsReview ? 'border-yellow-500' : ''}`}>
             <div className="bg-muted px-4 py-2 border-b flex justify-between items-center">
                 <div className='flex items-center gap-2'>
-                    <a href={`${prefixQuery.data || 'vscode'}://file/${fileContents.data?.fullPath || ''}:${element.lineStart}`}>
+                    <a href={`${prefixQuery.data || 'vscode'}://file/${snippetQuery.data?.fullPath || ''}:${displayLineStart}`}>
                         <p className="text-sm font-medium text-muted-foreground">{element.filePath}</p>
                     </a>
                     <button
@@ -246,7 +232,7 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                 </div>
             </div>
             <div className="relative">
-                {(fileContents.isLoading || (!fileContents.isLoading && !highlightedCode && element.filePath !== '')) ? (
+                {(snippetQuery.isLoading || (!snippetQuery.isLoading && !highlightedCode && element.filePath !== '')) ? (
                     <div className="p-4 text-sm text-muted-foreground">
                         <Spinner
                             className="size-4"
@@ -255,23 +241,22 @@ export function CodebaseSnippetElement({ attributes, children, element }: PlateE
                 ) : (<div
                     dangerouslySetInnerHTML={{ __html: highlightedCode }}
                 />)}
-                {(element.filePath === '' || fileContents.isError || fileContents.data?.contents === '') && (
+                {(element.filePath === '' || snippetQuery.isError || snippetQuery.data?.contents === '') && (
                     <div className="p-4 text-sm text-muted-foreground">
                         <p>Error loading code</p>
                     </div>
                 )}
             </div>
             <div className="bg-muted px-4 py-2 border-t flex justify-between items-center">
-                <p className="text-sm font-medium text-muted-foreground">Line {element.lineStart} - {element.lineEnd}</p>
+                <p className="text-sm font-medium text-muted-foreground">Line {displayLineStart} - {displayLineEnd}</p>
             </div>
             {children}
             <FileSelector
                 open={showFileSelector || false}
                 onClose={() => editor.tf.setNodes({ showFileSelector: false }, { at: element })}
                 onSelect={(filePath, startLine, endLine) => {
-                    // When user explicitly selects new file/lines, clear the old hash
-                    // and reset needsReview. The new hash will be set by useEffect
-                    // after the query with new params completes.
+                    // When user explicitly selects new file/lines, clear the old tracking data
+                    // New baseCommit and contentHash will be set by useEffect after fetch
                     editor.tf.setNodes(
                         {
                             filePath,

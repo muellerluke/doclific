@@ -291,7 +291,6 @@ function DeleteDocDialog({
 }
 
 export function AppSidebar() {
-    //trst
     const navigate = useNavigate()
     const location = useLocation()
     const dragState = useRef<{
