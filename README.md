@@ -146,22 +146,6 @@ doclific update
 
 **Note**: Doclific automatically checks for updates when you run any command. This command is useful for manual updates or checking update status.
 
-### `doclific check`
-
-Scan all documentation files for code snippets and check if line numbers need to be updated (based on git changes) or if content has changed and needs review.
-
-```bash
-doclific check
-# or automatically update line numbers
-doclific check --fix
-```
-
-**Options:**
-
--   `-f, --fix`: Automatically update line numbers for snippets that have shifted
-
-**Note**: Run this in your project directory (where the `doclific/` folder lives). The command exits with a non-zero status if it finds errors, stale line numbers (without `--fix`), or content that needs review.
-
 ## Configuration
 
 Doclific stores configuration in `~/.config/doclific/config.json`. You can manage it using the `get` and `set` commands, or edit the file directly.

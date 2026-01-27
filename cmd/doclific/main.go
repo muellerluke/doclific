@@ -145,82 +145,14 @@ var updateCmd = &cobra.Command{
 	},
 }
 
-var checkCmd = &cobra.Command{
-	Use:   "check",
-	Short: "Check code snippets for changes",
-	Long: `Scan all documentation files for code snippets and check if:
-- Line numbers need to be updated (based on git changes)
-- Content has changed and needs review`,
-	Run: func(cmd *cobra.Command, args []string) {
-		isInGitRepo, err := core.IsInGitRepo()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
-			os.Exit(1)
-		}
-		if !isInGitRepo {
-			fmt.Fprintf(os.Stderr, "❌ Error: Not in a git repository\n")
-			os.Exit(1)
-		}
-
-		fix, _ := cmd.Flags().GetBool("fix")
-
-		result, err := core.CheckSnippets(fix)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
-			os.Exit(1)
-		}
-
-		// Print results
-		fmt.Printf("\n📋 Snippet Check Results\n")
-		fmt.Printf("   ──────────────────────\n")
-		fmt.Printf("   Files scanned: %d\n", result.FilesScanned)
-		fmt.Printf("   Snippets found: %d\n", result.SnippetsFound)
-
-		if len(result.StaleLineNumbers) > 0 {
-			if fix {
-				fmt.Printf("\n✅ Updated stale line numbers (%d):\n", len(result.StaleLineNumbers))
-			} else {
-				fmt.Printf("\n📝 Stale line numbers (%d):\n", len(result.StaleLineNumbers))
-			}
-			for _, snippet := range result.StaleLineNumbers {
-				fmt.Printf("   - %s: %s (lines %d-%d)\n",
-					snippet.DocTitle, snippet.FilePath, snippet.LineStart, snippet.LineEnd)
-			}
-		}
-
-		if len(result.NeedsReview) > 0 {
-			fmt.Printf("\n⚠️  Content changed - needs review (%d):\n", len(result.NeedsReview))
-			for _, snippet := range result.NeedsReview {
-				fmt.Printf("   - %s: %s (lines %d-%d)\n",
-					snippet.DocTitle, snippet.FilePath, snippet.LineStart, snippet.LineEnd)
-			}
-		}
-
-		if len(result.Errors) > 0 {
-			fmt.Printf("\n❌ Errors (%d):\n", len(result.Errors))
-			for _, errMsg := range result.Errors {
-				fmt.Printf("   - %s\n", errMsg)
-			}
-		}
-
-		if len(result.StaleLineNumbers) == 0 && len(result.NeedsReview) == 0 && len(result.Errors) == 0 {
-			fmt.Printf("\n✅ All snippets are up to date!\n")
-		} else if !fix && len(result.StaleLineNumbers) > 0 {
-			fmt.Printf("\n💡 Run 'doclific check --fix' to automatically update line numbers\n")
-		}
-	},
-}
-
 func init() {
 	rootCmd.Flags().IntP("port", "p", 6767, "port to listen on")
-	checkCmd.Flags().BoolP("fix", "f", false, "automatically update line numbers")
 	// Add commands to root
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(setCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(updateCmd)
-	rootCmd.AddCommand(checkCmd)
 }
 
 // maskAPIKey masks an API key for display (shows first 4 and last 4 characters)

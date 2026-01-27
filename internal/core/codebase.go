@@ -2,6 +2,8 @@ package core
 
 import (
 	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +12,25 @@ import (
 
 	gitignore "github.com/sabhiram/go-gitignore"
 )
+
+// NormalizeContent strips all whitespace from content for hash comparison
+func NormalizeContent(content string) string {
+	// Remove all whitespace characters (spaces, tabs, newlines, carriage returns)
+	var result strings.Builder
+	for _, r := range content {
+		if r != ' ' && r != '\t' && r != '\n' && r != '\r' {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
+}
+
+// HashContent returns SHA256 hash of normalized content
+func HashContent(content string) string {
+	normalized := NormalizeContent(content)
+	hash := sha256.Sum256([]byte(normalized))
+	return hex.EncodeToString(hash[:])
+}
 
 // FileNode represents a file or directory in the file system
 type FileNode struct {
