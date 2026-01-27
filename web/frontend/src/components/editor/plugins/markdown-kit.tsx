@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { CodebaseSnippetType } from './codebase-kit';
 import { ERDType } from './erd-kit';
+import { HttpRequestType } from './request-kit';
 
 export const MarkdownKit = [
   MarkdownPlugin.configure({
@@ -108,6 +109,56 @@ export const MarkdownKit = [
               contentHash: getAttr('contentHash'),
               needsReview: getAttr('needsReview'),
               children: [{ text: '' }], // Required for void elements
+            };
+          }
+        },
+        [HttpRequestType]: {
+          serialize: (slateNode) => {
+            return {
+              type: 'mdxJsxFlowElement',
+              name: 'HttpRequest',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'method', value: slateNode.method || 'GET' },
+                { type: 'mdxJsxAttribute', name: 'url', value: slateNode.url || '' },
+                { type: 'mdxJsxAttribute', name: 'headers', value: JSON.stringify(slateNode.headers || []) },
+                { type: 'mdxJsxAttribute', name: 'queryParams', value: JSON.stringify(slateNode.queryParams || []) },
+                { type: 'mdxJsxAttribute', name: 'bodyType', value: slateNode.bodyType || 'none' },
+                { type: 'mdxJsxAttribute', name: 'bodyContent', value: slateNode.bodyContent || '' },
+                { type: 'mdxJsxAttribute', name: 'formData', value: JSON.stringify(slateNode.formData || []) },
+                { type: 'mdxJsxAttribute', name: 'auth', value: JSON.stringify(slateNode.auth || { type: 'none' }) },
+                { type: 'mdxJsxAttribute', name: 'response', value: slateNode.response ? JSON.stringify(slateNode.response) : '' },
+              ],
+              children: [{ type: 'text', value: '' }],
+            };
+          },
+          deserialize: (mdastNode) => {
+            const getAttr = (name: string) => {
+              const attr = mdastNode.attributes?.find((a: { name: string }) => a.name === name);
+              return attr?.value || '';
+            };
+
+            const parseJsonAttr = (name: string, defaultValue: any) => {
+              const value = getAttr(name);
+              if (!value) return defaultValue;
+              try {
+                return JSON.parse(value);
+              } catch {
+                return defaultValue;
+              }
+            };
+
+            return {
+              type: HttpRequestType,
+              method: getAttr('method') || 'GET',
+              url: getAttr('url'),
+              headers: parseJsonAttr('headers', []),
+              queryParams: parseJsonAttr('queryParams', []),
+              bodyType: getAttr('bodyType') || 'none',
+              bodyContent: getAttr('bodyContent'),
+              formData: parseJsonAttr('formData', []),
+              auth: parseJsonAttr('auth', { type: 'none' }),
+              response: parseJsonAttr('response', undefined),
+              children: [{ text: '' }],
             };
           }
         },

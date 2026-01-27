@@ -49,6 +49,18 @@ Creates an interactive entity relationship diagram for database schemas.
 
 That skill provides detailed instructions for creating the `tables` and `relationships` JSON attributes.
 
+### HttpRequest
+Creates an interactive HTTP request builder that allows users to make live API requests directly from the documentation.
+
+```mdx
+<HttpRequest method="GET" url="https://api.example.com/users" headers="[...]" queryParams="[...]" bodyType="none" bodyContent="" formData="[]" auth="{...}">
+</HttpRequest>
+```
+
+**For generating HttpRequest components, use the separate skill:** `generate-doclific-http-request`
+
+That skill provides a script that takes a simple JSON input and outputs the properly formatted MDX component.
+
 ## Example
 
 See the `example.mdx` file in this directory for a reference of how to use these components.

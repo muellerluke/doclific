@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
-import { PenToolIcon } from 'lucide-react';
+import { PenToolIcon, Send } from 'lucide-react';
 import {
   insertBlock,
   insertInlineElement,
@@ -37,6 +37,7 @@ import {
 } from './inline-combobox';
 import { CodebaseSnippetType } from '../editor/plugins/codebase-kit';
 import { ERDType } from '../editor/plugins/erd-kit';
+import { HttpRequestType } from '../editor/plugins/request-kit';
 
 type Group = {
   group: string;
@@ -168,6 +169,12 @@ const groups: Group[] = [
         icon: <Table2Icon />,
         label: 'Entity-Relationship Diagram',
         value: ERDType,
+      },
+      {
+        icon: <Send />,
+        keywords: ['http', 'api', 'fetch', 'request', 'rest'],
+        label: 'HTTP Request',
+        value: HttpRequestType,
       },
     ].map((item) => ({
       ...item,

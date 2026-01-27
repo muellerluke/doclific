@@ -34,6 +34,7 @@ import { ToggleKit } from './plugins/toggle-kit';
 import { CodebaseSnippetPlugin } from './plugins/codebase-kit';
 import { ExcalidrawKit } from './plugins/excalidraw-kit';
 import { ERDPlugin } from './plugins/erd-kit';
+import { HttpRequestPlugin } from './plugins/request-kit';
 
 export const EditorKit = [
   ...BlockMenuKit,
@@ -83,6 +84,7 @@ export const EditorKit = [
   // Custom
   CodebaseSnippetPlugin,
   ERDPlugin,
+  HttpRequestPlugin,
 ];
 
 export type MyEditor = TPlateEditor<Value, (typeof EditorKit)[number]>;

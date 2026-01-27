@@ -1,0 +1,150 @@
+# API Reference
+
+This document lists every API route with a live request you can run. Use these when the Doclific server is running (e.g. via `doclific serve`). Paths are relative to the app origin.
+
+## Update
+
+### GET /api/update/check
+
+Returns current and latest version for update checks.
+
+<HttpRequest method="GET" url="/api/update/check" headers="[]" queryParams="[]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="{&#x22;status&#x22;:200,&#x22;statusText&#x22;:&#x22;OK&#x22;,&#x22;headers&#x22;:{&#x22;cache-control&#x22;:&#x22;no-cache&#x22;,&#x22;connection&#x22;:&#x22;keep-alive&#x22;,&#x22;content-length&#x22;:&#x22;992&#x22;,&#x22;content-type&#x22;:&#x22;text/html&#x22;,&#x22;date&#x22;:&#x22;Tue, 27 Jan 2026 17:38:06 GMT&#x22;,&#x22;etag&#x22;:&#x22;W/\&#x22;3e0-Bh1gzhd9CPiB0eVX1K/CqB9VBl8\&#x22;&#x22;,&#x22;keep-alive&#x22;:&#x22;timeout=5&#x22;,&#x22;vary&#x22;:&#x22;Origin&#x22;},&#x22;body&#x22;:&#x22;<!doctype html>\n<html lang=\&#x22;en\&#x22;>\n\t<head>\n\t\t<script type=\&#x22;module\&#x22;>import { injectIntoGlobalHook } from \&#x22;/@react-refresh\&#x22;;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n\t\t<script type=\&#x22;module\&#x22; src=\&#x22;/@vite/client\&#x22;></script>\n\n\t\t<meta charset=\&#x22;UTF-8\&#x22; />\n\t\t<link rel=\&#x22;icon\&#x22; type=\&#x22;image/svg+xml\&#x22; href=\&#x22;/logo.svg\&#x22; />\n\t\t<meta name=\&#x22;viewport\&#x22; content=\&#x22;width=device-width, initial-scale=1.0\&#x22; />\n\t\t<title>Doclific</title>\n\t\t<link rel=\&#x22;preconnect\&#x22; href=\&#x22;https://fonts.googleapis.com\&#x22; />\n\t\t<link rel=\&#x22;preconnect\&#x22; href=\&#x22;https://fonts.gstatic.com\&#x22; crossorigin />\n\t\t<link\n\t\t\thref=\&#x22;https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap\&#x22;\n\t\t\trel=\&#x22;stylesheet\&#x22;\n\t\t/>\n\t\t<script>\n\t\t\tconst BACKEND_PORT = 6767;\n\t\t\twindow.env = {\n\t\t\t\tPORT: BACKEND_PORT,\n\t\t\t};\n\t\t</script>\n\t</head>\n\t<body>\n\t\t<div id=\&#x22;root\&#x22;></div>\n\t\t<script type=\&#x22;module\&#x22; src=\&#x22;/src/main.tsx?t=1769534410260\&#x22;></script>\n\t</body>\n</html>\n&#x22;,&#x22;time&#x22;:67,&#x22;size&#x22;:992,&#x22;cookies&#x22;:[]}">
+
+</HttpRequest>
+
+## Git
+
+### GET /api/git/repo-info
+
+Returns repository name, branch, user, and email.
+
+<HttpRequest method="GET" url="/api/git/repo-info" headers="[]" queryParams="[]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+## Docs
+
+### GET /api/docs
+
+Returns the full docs tree.
+
+<HttpRequest method="GET" url="/api/docs" headers="[]" queryParams="[]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### GET /api/docs/doc
+
+Returns a single doc’s content. Query: `filePath` (e.g. `doclific/some-uuid/content.mdx`).
+
+<HttpRequest method="GET" url="/api/docs/doc" headers="[]" queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;doclific/some-uuid/content.mdx&#x22;,&#x22;enabled&#x22;:true}]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### PUT /api/docs/doc
+
+Updates a doc’s content. Query: `filePath`. Body: `{ "content": "..." }`.
+
+<HttpRequest
+  method="PUT"
+  url="/api/docs/doc"
+  headers="[{&#x22;key&#x22;:&#x22;Content-Type&#x22;,&#x22;value&#x22;:&#x22;application/json&#x22;,&#x22;enabled&#x22;:true}]"
+  queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;doclific/some-uuid/content.mdx&#x22;,&#x22;enabled&#x22;:true}]"
+  bodyType="json"
+  bodyContent="{
+&#x22;content&#x22;: &#x22;# Updated content\n\nYour markdown here...&#x22;
+}"
+  formData="[]"
+  auth="{&#x22;type&#x22;:&#x22;none&#x22;}"
+  response=""
+>
+
+</HttpRequest>
+
+### POST /api/docs
+
+Creates a new doc. Body: `{ "filePath": "doclific/", "title": "New Document", "icon": "FileText" }`.
+
+<HttpRequest
+  method="POST"
+  url="/api/docs"
+  headers="[{&#x22;key&#x22;:&#x22;Content-Type&#x22;,&#x22;value&#x22;:&#x22;application/json&#x22;,&#x22;enabled&#x22;:true}]"
+  queryParams="[]"
+  bodyType="json"
+  bodyContent="{
+&#x22;filePath&#x22;: &#x22;doclific/&#x22;,
+&#x22;title&#x22;: &#x22;New Document&#x22;,
+&#x22;icon&#x22;: &#x22;FileText&#x22;
+}"
+  formData="[]"
+  auth="{&#x22;type&#x22;:&#x22;none&#x22;}"
+  response=""
+>
+
+</HttpRequest>
+
+### DELETE /api/docs/doc
+
+Deletes a doc. Query: `filePath` (e.g. `doclific/some-uuid`).
+
+<HttpRequest method="DELETE" url="/api/docs/doc" headers="[]" queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;doclific/some-uuid&#x22;,&#x22;enabled&#x22;:true}]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### PUT /api/docs/order
+
+Updates doc order/move. Body: `{ "name", "updatedPath", "beforeSibling", "afterSibling" }`.
+
+<HttpRequest
+  method="PUT"
+  url="/api/docs/order"
+  headers="[{&#x22;key&#x22;:&#x22;Content-Type&#x22;,&#x22;value&#x22;:&#x22;application/json&#x22;,&#x22;enabled&#x22;:true}]"
+  queryParams="[]"
+  bodyType="json"
+  bodyContent="{
+&#x22;name&#x22;: &#x22;doc-uuid&#x22;,
+&#x22;updatedPath&#x22;: &#x22;doclific/&#x22;,
+&#x22;beforeSibling&#x22;: &#x22;&#x22;,
+&#x22;afterSibling&#x22;: &#x22;&#x22;
+}"
+  formData="[]"
+  auth="{&#x22;type&#x22;:&#x22;none&#x22;}"
+  response=""
+>
+
+</HttpRequest>
+
+## Codebase
+
+### GET /api/codebase/folder
+
+Returns contents of a folder. Query: `filePath` (e.g. `.` or `internal/`).
+
+<HttpRequest method="GET" url="/api/codebase/folder" headers="[]" queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;.&#x22;,&#x22;enabled&#x22;:true}]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### GET /api/codebase/file
+
+Returns a file’s contents and full path. Query: `filePath` (required).
+
+<HttpRequest method="GET" url="/api/codebase/file" headers="[]" queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;README.md&#x22;,&#x22;enabled&#x22;:true}]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### GET /api/codebase/snippet
+
+Returns a line range from a file, with optional hash for drift detection. Query: `filePath`, `lineStart`, `lineEnd`, and optionally `contentHash`.
+
+<HttpRequest method="GET" url="/api/codebase/snippet" headers="[]" queryParams="[{&#x22;key&#x22;:&#x22;filePath&#x22;,&#x22;value&#x22;:&#x22;README.md&#x22;,&#x22;enabled&#x22;:true},{&#x22;key&#x22;:&#x22;lineStart&#x22;,&#x22;value&#x22;:&#x22;1&#x22;,&#x22;enabled&#x22;:true},{&#x22;key&#x22;:&#x22;lineEnd&#x22;,&#x22;value&#x22;:&#x22;10&#x22;,&#x22;enabled&#x22;:true}]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+### GET /api/codebase/prefix
+
+Returns the configured deeplink prefix (e.g. for codebase links).
+
+<HttpRequest method="GET" url="/api/codebase/prefix" headers="[]" queryParams="[]" bodyType="none" bodyContent="" formData="[]" auth="{&#x22;type&#x22;:&#x22;none&#x22;}" response="">
+
+</HttpRequest>
+
+​

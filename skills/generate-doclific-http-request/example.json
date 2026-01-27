@@ -1,0 +1,22 @@
+{
+  "description": "Example HTTP request for creating a user with authentication",
+  
+  "method": "POST",
+  "url": "https://api.example.com/v1/users",
+  "headers": [
+    { "key": "Content-Type", "value": "application/json", "enabled": true },
+    { "key": "Accept", "value": "application/json", "enabled": true },
+    { "key": "X-Request-ID", "value": "abc-123", "enabled": false }
+  ],
+  "queryParams": [
+    { "key": "notify", "value": "true", "enabled": true },
+    { "key": "source", "value": "api-docs", "enabled": true }
+  ],
+  "bodyType": "json",
+  "bodyContent": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"user\",\n  \"preferences\": {\n    \"theme\": \"dark\",\n    \"notifications\": true\n  }\n}",
+  "formData": [],
+  "auth": {
+    "type": "bearer",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+  }
+}

@@ -19,6 +19,7 @@ http://localhost:6767/api
 Get all documents in a hierarchical structure.
 
 **Response:**
+
 ```json
 [
   {
@@ -31,7 +32,8 @@ Get all documents in a hierarchical structure.
 ]
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="75" lineEnd="84">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="75" lineEnd="84" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="3c3c9c1e1bfa23021e1e653f6f19039d008344d0f1339f4af4fa33d9b0f208dc" needsReview="false">
+
 </CodebaseSnippet>
 
 #### GET /api/docs/doc
@@ -39,14 +41,17 @@ Get all documents in a hierarchical structure.
 Get a specific document's content.
 
 **Query Parameters:**
-- `filePath` (required): Path to the document folder
+
+* `filePath` (required): Path to the document folder
 
 **Response:**
+
 ```json
 "# Document Title\n\nContent..."
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="86" lineEnd="100">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="86" lineEnd="100" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="68c144a15f184b48b74f05f3fbd102d8680b1f3c1d3d9e7e206bdb7132a84a8f" needsReview="false">
+
 </CodebaseSnippet>
 
 #### POST /api/docs
@@ -54,6 +59,7 @@ Get a specific document's content.
 Create a new document.
 
 **Request Body:**
+
 ```json
 {
   "filePath": "parent/path",
@@ -63,13 +69,15 @@ Create a new document.
 ```
 
 **Response:**
+
 ```json
 {
   "url": "/new-document-id"
 }
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="129" lineEnd="148">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="129" lineEnd="148" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="fc115fb81b9c2996b6263a9f740c83094e6e65f95c0583b986ab869cc017da09" needsReview="false">
+
 </CodebaseSnippet>
 
 #### PUT /api/docs/doc
@@ -77,16 +85,19 @@ Create a new document.
 Update a document's content.
 
 **Query Parameters:**
-- `filePath` (required): Path to the document folder
+
+* `filePath` (required): Path to the document folder
 
 **Request Body:**
+
 ```json
 {
   "content": "# Updated Content"
 }
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="106" lineEnd="127">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="106" lineEnd="127" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="ca580c5cfa1884a33c94469e67c79adf4769e000580ee87419e49c1f02e53b87" needsReview="false">
+
 </CodebaseSnippet>
 
 #### DELETE /api/docs/doc
@@ -94,9 +105,11 @@ Update a document's content.
 Delete a document.
 
 **Query Parameters:**
-- `filePath` (required): Path to the document folder
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="150" lineEnd="160">
+* `filePath` (required): Path to the document folder
+
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="150" lineEnd="160" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="bf613523fd898d71af62875f9ca621c53ccac3be9d630e10eb3df04bbd718cea" needsReview="false">
+
 </CodebaseSnippet>
 
 #### PUT /api/docs/order
@@ -104,6 +117,7 @@ Delete a document.
 Update document order and hierarchy.
 
 **Request Body:**
+
 ```json
 {
   "name": "document-id",
@@ -113,7 +127,8 @@ Update document order and hierarchy.
 }
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="162" lineEnd="176">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="162" lineEnd="176" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="ba2cc3cbff173cb27a709b64593d39231f48cf06a27f59ed0380e98196696923" needsReview="false">
+
 </CodebaseSnippet>
 
 ### Git Information
@@ -123,6 +138,7 @@ Update document order and hierarchy.
 Get Git repository information.
 
 **Response:**
+
 ```json
 {
   "repositoryName": "repo-name",
@@ -132,7 +148,8 @@ Get Git repository information.
 }
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="37" lineEnd="71">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="37" lineEnd="71" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="b6f7af9869c2020cb934ce36a7b14b2339b58889f2eecbc50a1ef5978910ae5f" needsReview="false">
+
 </CodebaseSnippet>
 
 ### Codebase Exploration
@@ -142,9 +159,11 @@ Get Git repository information.
 Get contents of a folder.
 
 **Query Parameters:**
-- `filePath`: Path to the folder (empty for root)
+
+* `filePath`: Path to the folder (empty for root)
 
 **Response:**
+
 ```json
 [
   {
@@ -156,7 +175,8 @@ Get contents of a folder.
 ]
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="180" lineEnd="191">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="180" lineEnd="191" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="5a35d12524eb66a1adf11c709d950ba446f84fcc5e6e9e612e50cb2ecfc06f57" needsReview="false">
+
 </CodebaseSnippet>
 
 #### GET /api/codebase/file
@@ -164,9 +184,11 @@ Get contents of a folder.
 Get contents of a file.
 
 **Query Parameters:**
-- `filePath` (required): Path to the file
+
+* `filePath` (required): Path to the file
 
 **Response:**
+
 ```json
 {
   "contents": "file contents...",
@@ -174,7 +196,8 @@ Get contents of a file.
 }
 ```
 
-<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="193" lineEnd="221">
+<CodebaseSnippet filePath="internal/server/handlers.go" lineStart="193" lineEnd="221" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="dc28946382ee27230ee566f05a488cbae13561839a751848378a8746bce9df6a" needsReview="false">
+
 </CodebaseSnippet>
 
 #### GET /api/codebase/prefix
@@ -182,9 +205,11 @@ Get contents of a file.
 Search for files by prefix.
 
 **Query Parameters:**
-- `prefix` (required): File path prefix to search for
+
+* `prefix` (required): File path prefix to search for
 
 **Response:**
+
 ```json
 [
   {
@@ -202,6 +227,7 @@ Search for files by prefix.
 Check if a newer version is available.
 
 **Response:**
+
 ```json
 {
   "isLatest": true,
@@ -213,9 +239,10 @@ Check if a newer version is available.
 ## Error Handling
 
 All endpoints return appropriate HTTP status codes:
-- `200`: Success
-- `400`: Bad Request
-- `500`: Internal Server Error
+
+* `200`: Success
+* `400`: Bad Request
+* `500`: Internal Server Error
 
 Error responses include error messages in the response body.
 
@@ -223,5 +250,8 @@ Error responses include error messages in the response body.
 
 All endpoints support CORS for cross-origin requests from the frontend.
 
-<CodebaseSnippet filePath="internal/server/server.go" lineStart="15" lineEnd="33">
+<CodebaseSnippet filePath="internal/server/server.go" lineStart="15" lineEnd="33" baseCommit="3735a0267ac45410daf3fb25d44bd82bfb17c92d" contentHash="65780cb0aa965078592796ce5f88fcf97894eed57ffa8deaf6bafde95679ac8e" needsReview="false">
+
 </CodebaseSnippet>
+
+​

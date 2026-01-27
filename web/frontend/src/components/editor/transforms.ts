@@ -21,6 +21,7 @@ import { insertToc } from '@platejs/toc';
 import { type NodeEntry, type Path, type TElement, KEYS, PathApi } from 'platejs';
 import { CodebaseSnippetType } from './plugins/codebase-kit';
 import { ERDType } from './plugins/erd-kit';
+import { HttpRequestType } from './plugins/request-kit';
 
 const ACTION_THREE_COLUMNS = 'action_three_columns';
 
@@ -112,6 +113,19 @@ export const insertBlock = (
 			});
 
 			console.log(editor.children);
+		} else if (type === HttpRequestType) {
+			editor.tf.insertNodes({
+				type: HttpRequestType,
+				method: 'GET',
+				url: '',
+				headers: [],
+				queryParams: [],
+				bodyType: 'none',
+				bodyContent: '',
+				formData: [],
+				auth: { type: 'none' },
+				children: [{ text: '' }],
+			});
 		} else {
 			editor.tf.insertNodes(editor.api.create.block({ type }), {
 				at: PathApi.next(path),

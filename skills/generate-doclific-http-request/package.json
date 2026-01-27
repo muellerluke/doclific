@@ -1,0 +1,14 @@
+{
+  "name": "generate-doclific-http-request",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Generate MDX for HttpRequest components in Doclific documentation",
+  "main": "generate-request.js",
+  "scripts": {
+    "generate": "node generate-request.js"
+  },
+  "dependencies": {
+    "he": "^1.2.0",
+    "zod": "^3.24.1"
+  }
+}
